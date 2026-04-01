@@ -6,43 +6,40 @@
 
 <style>
 body {
-    margin: 0;
     font-family: Arial;
-    background: linear-gradient(to right, #74ebd5, #ACB6E5);
+    background: linear-gradient(to right, #74ebd5, #9face6);
+    text-align: center;
 }
 
 .container {
-    max-width: 600px;
+    max-width: 500px;
     margin: 50px auto;
     background: white;
     padding: 25px;
     border-radius: 15px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    text-align: center;
 }
 
 h1 {
     margin-bottom: 20px;
-    color: #333;
 }
 
 input, select {
     width: 90%;
     padding: 12px;
-    margin: 10px 0;
-    border: 1px solid #ccc;
+    margin: 6px;
     border-radius: 8px;
+    border: 1px solid #ccc;
 }
 
 button {
     width: 95%;
     padding: 12px;
-    background: linear-gradient(to right, #2196f3, #21cbf3);
+    margin-top: 10px;
+    background: linear-gradient(to right, #2196F3, #00BCD4);
     color: white;
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 16px;
 }
 
 button:hover {
@@ -55,23 +52,21 @@ table {
     border-collapse: collapse;
 }
 
-th, td {
-    padding: 10px;
-    border: 1px solid #ddd;
-}
-
 th {
-    background: #2196f3;
+    background: #2196F3;
     color: white;
+    padding: 10px;
 }
 
-.delete-btn {
+td {
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+}
+
+td button {
     background: red;
-    border: none;
-    color: white;
-    border-radius: 5px;
+    width: auto;
     padding: 5px 10px;
-    cursor: pointer;
 }
 </style>
 </head>
@@ -79,42 +74,39 @@ th {
 <body>
 
 <div class="container">
+    <h1>Haftalık Ders Programı</h1>
 
-<h1>Haftalık Ders Programı</h1>
+    <select id="gun">
+        <option>Pazartesi</option>
+        <option>Salı</option>
+        <option>Çarşamba</option>
+        <option>Perşembe</option>
+        <option>Cuma</option>
+    </select>
 
-<select id="gun">
-    <option>Pazartesi</option>
-    <option>Salı</option>
-    <option>Çarşamba</option>
-    <option>Perşembe</option>
-    <option>Cuma</option>
-</select>
+    <input type="text" id="saat" placeholder="Saat (örn: 10)">
+    <input type="text" id="ders" placeholder="Ders adı">
+    <input type="text" id="ogretmen" placeholder="Öğretmen">
+    <input type="text" id="sinif" placeholder="Sınıf">
+    <input type="text" id="kampus" placeholder="Kampüs">
 
-<input type="text" id="saat" placeholder="Saat (örn: 10)">
-<input type="text" id="ders" placeholder="Ders adı">
-<input type="text" id="ogretmen" placeholder="Öğretmen">
-<input type="text" id="sinif" placeholder="Sınıf">
-<input type="text" id="kampus" placeholder="Kampüs">
+    <button onclick="ekle()">Ekle</button>
 
-<button onclick="ekle()">Ekle</button>
-
-<table>
-<tr>
-    <th>Gün</th>
-    <th>Saat</th>
-    <th>Ders</th>
-    <th>Öğretmen</th>
-    <th>Sınıf</th>
-    <th>Kampüs</th>
-    <th>Sil</th>
-</tr>
-</table>
-
+    <table id="tablo">
+        <tr>
+            <th>Gün</th>
+            <th>Saat</th>
+            <th>Ders</th>
+            <th>Öğretmen</th>
+            <th>Sınıf</th>
+            <th>Kampüs</th>
+            <th>Sil</th>
+        </tr>
+    </table>
 </div>
 
 <script>
 function ekle() {
-
     var gun = document.getElementById("gun").value;
     var saat = document.getElementById("saat").value;
     var ders = document.getElementById("ders").value;
@@ -122,12 +114,12 @@ function ekle() {
     var sinif = document.getElementById("sinif").value;
     var kampus = document.getElementById("kampus").value;
 
-    if(saat === "" || ders === ""){
-        alert("Saat ve ders boş olamaz!");
+    if(saat === "" || ders === "") {
+        alert("Lütfen saat ve ders gir!");
         return;
     }
 
-    var tablo = document.querySelector("table");
+    var tablo = document.getElementById("tablo");
     var satir = tablo.insertRow();
 
     satir.insertCell(0).innerText = gun;
@@ -137,18 +129,16 @@ function ekle() {
     satir.insertCell(4).innerText = sinif;
     satir.insertCell(5).innerText = kampus;
 
-    var silHucre = satir.insertCell(6);
-    var btn = document.createElement("button");
-    btn.innerText = "Sil";
-    btn.className = "delete-btn";
+    var silBtn = document.createElement("button");
+    silBtn.innerText = "Sil";
 
-    btn.onclick = function() {
+    silBtn.onclick = function () {
         satir.remove();
     };
 
-    silHucre.appendChild(btn);
+    satir.insertCell(6).appendChild(silBtn);
 
-    // inputları temizle
+    // input temizleme
     document.getElementById("saat").value = "";
     document.getElementById("ders").value = "";
     document.getElementById("ogretmen").value = "";
