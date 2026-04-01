@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ders Programı</title>
+
+<style>
+body {
+    font-family: Arial;
+    background-color: #e3f2fd;
+    text-align: center;
+}
+
+.container {
+    max-width: 400px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+input, select {
+    width: 90%;
+    padding: 10px;
+    margin: 5px;
+}
+
+button {
+    padding: 10px;
+    width: 95%;
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    margin-top: 5px;
+}
+
+table {
+    width: 100%;
+    margin-top: 15px;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 8px;
+    border: 1px solid #ccc;
+}
+</style>
+
+</head>
+
+<body>
+
+<div id="login" class="container">
+    <h2>Giriş Yap</h2>
+    <input id="kullanici" placeholder="Kullanıcı adı">
+    <input id="sifre" placeholder="Şifre" type="password">
+    <button onclick="giris()">Giriş</button>
+</div>
+
+<div id="app" class="container" style="display:none;">
+    <h2>Ders Programı</h2>
+
+    <select id="gun">
+        <option>Pazartesi</option>
+        <option>Salı</option>
+        <option>Çarşamba</option>
+        <option>Perşembe</option>
+        <option>Cuma</option>
+    </select>
+
+    <input id="saat" placeholder="Saat">
+    <input id="ders" placeholder="Ders">
+    <input id="ogretmen" placeholder="Öğretmen">
+    <input id="sinif" placeholder="Sınıf">
+    <input id="kampus" placeholder="Kampüs">
+
+    <button onclick="ekle()">Ders Ekle</button>
+
+    <p id="uyari"></p>
+
+    <table>
+        <tr>
+            <th>Gün</th>
+            <th>Saat</th>
+            <th>Ders</th>
+            <th>Sil</th>
+        </tr>
+    </table>
+</div>
+
+<script>
+var aktifKullanici = "";
+var program = [];
+
+function giris() {
+    var k = document.getElementById("kullanici").value;
+    var s = document.getElementById("sifre").value;
+
+    if (k && s) {
+        aktifKullanici = k;
+
+        program = JSON.parse(localStorage.getItem(k)) || [];
+
+        document.getElementById("login").style.display = "none";
+        document.getElementById("app").style.display = "block";
+
+        tabloyuDoldur();
+    }
+}
+
+function tabloyuDoldur() {
+    var tablo = document.querySelector("table");
+
+    while (tablo.rows.length > 1) {
+        tablo.deleteRow(1);
+    }
+
+    for (let i = 0; i < program.length; i++) {
+        var satir = tablo.insertRow();
+
+        satir.insertCell(0).innerText = program[i].gun;
+        satir.insertCell(1).innerText = program[i].saat;
+        satir.insertCell(2).innerText = program[i].ders;
+
+        var btn = document.createElement("button");
+        btn.innerText = "Sil";
+        btn.onclick = function() {
+            program.splice(i, 1);
+            localStorage.setItem(aktifKullanici, JSON.stringify(program));
+            tabloyuDoldur();
+        };
+
+        satir.insertCell(3).appendChild(btn);
+    }
+}
+
+function ekle() {
+    var gun = document.getElementById("gun").value;
+    var saat = document.getElementById("saat").value;
+    var ders = document.getElementById("ders").value;
+
+    for (var i = 0; i < program.length; i++) {
+        if (program[i].gun == gun && program[i].saat == saat) {
+            document.getElementById("uyari").innerText = "Çakışma var!";
+            return;
+        }
+    }
+
+    program.push({gun, saat, ders});
+
+    localStorage.setItem(aktifKullanici, JSON.stringify(program));
+
+    tabloyuDoldur();
+
+    document.getElementById("uyari").innerText = "Eklendi!";
+}
+</script>
+
+</body>
+</html>
