@@ -1,72 +1,62 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Ders Programı</title>
+    <title>Haftalık Ders Programı</title>
 
-<style>
-body {
-    font-family: Arial;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    text-align: center;
-    color: white;
-}
+    <style>
+        body {
+            font-family: Arial;
+            background-color: #e3f2fd;
+            text-align: center;
+        }
 
-.container {
-    max-width: 400px;
-    margin: auto;
-    background: white;
-    color: black;
-    padding: 20px;
-    border-radius: 15px;
-    margin-top: 30px;
-}
+        .container {
+            max-width: 700px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
 
-input, select {
-    width: 90%;
-    padding: 10px;
-    margin: 5px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-}
+        input, select {
+            width: 90%;
+            padding: 10px;
+            margin: 5px;
+        }
 
-button {
-    padding: 10px;
-    width: 95%;
-    background-color: #667eea;
-    color: white;
-    border: none;
-    margin-top: 5px;
-    border-radius: 10px;
-    font-weight: bold;
-}
+        button {
+            padding: 10px;
+            width: 95%;
+            background-color: #2196f3;
+            color: white;
+            border: none;
+            margin-top: 5px;
+            cursor: pointer;
+        }
 
-button:hover {
-    background-color: #5a67d8;
-}
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
 
-table {
-    width: 100%;
-    margin-top: 15px;
-    border-collapse: collapse;
-}
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+        }
 
-th {
-    background-color: #667eea;
-    color: white;
-}
-
-th, td {
-    padding: 8px;
-    border: 1px solid #ccc;
-}
-</style>
-
+        th {
+            background-color: #2196f3;
+            color: white;
+        }
+    </style>
 </head>
 
 <body>
 
 <div class="container">
-    <h2>📅 Ders Programı</h2>
+
+    <h1>Haftalık Ders Programı</h1>
 
     <select id="gun">
         <option>Pazartesi</option>
@@ -76,34 +66,67 @@ th, td {
         <option>Cuma</option>
     </select>
 
-    <input id="saat" placeholder="Saat">
-    <input id="ders" placeholder="Ders">
+    <input type="text" id="saat" placeholder="Saat (örn: 10)">
+    <input type="text" id="ders" placeholder="Ders adı">
+    <input type="text" id="ogretmen" placeholder="Öğretmen">
+    <input type="text" id="sinif" placeholder="Sınıf">
+    <input type="text" id="kampus" placeholder="Kampüs">
 
-    <button onclick="ekle()">➕ Ders Ekle</button>
+    <button onclick="ekle()">Ekle</button>
 
     <table>
         <tr>
             <th>Gün</th>
             <th>Saat</th>
             <th>Ders</th>
+            <th>Öğretmen</th>
+            <th>Sınıf</th>
+            <th>Kampüs</th>
+            <th>Sil</th>
         </tr>
     </table>
+
 </div>
 
 <script>
-var program = [];
-
 function ekle() {
     var gun = document.getElementById("gun").value;
     var saat = document.getElementById("saat").value;
     var ders = document.getElementById("ders").value;
+    var ogretmen = document.getElementById("ogretmen").value;
+    var sinif = document.getElementById("sinif").value;
+    var kampus = document.getElementById("kampus").value;
 
     var tablo = document.querySelector("table");
+
+    // ÇAKIŞMA KONTROLÜ
+    for (var i = 1; i < tablo.rows.length; i++) {
+        var mevcutGun = tablo.rows[i].cells[0].innerText;
+        var mevcutSaat = tablo.rows[i].cells[1].innerText;
+
+        if (mevcutGun === gun && mevcutSaat === saat) {
+            alert("Bu saat dolu!");
+            return;
+        }
+    }
+
     var satir = tablo.insertRow();
 
     satir.insertCell(0).innerText = gun;
     satir.insertCell(1).innerText = saat;
     satir.insertCell(2).innerText = ders;
+    satir.insertCell(3).innerText = ogretmen;
+    satir.insertCell(4).innerText = sinif;
+    satir.insertCell(5).innerText = kampus;
+
+    // SİL BUTONU
+    var silBtn = document.createElement("button");
+    silBtn.innerText = "Sil";
+    silBtn.onclick = function() {
+        tablo.deleteRow(satir.rowIndex);
+    };
+
+    satir.insertCell(6).appendChild(silBtn);
 }
 </script>
 
