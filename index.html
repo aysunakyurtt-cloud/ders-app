@@ -1,95 +1,115 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
-    <title>Haftalık Ders Programı</title>
+<meta charset="UTF-8">
+<title>Haftalık Ders Programı</title>
 
-    <style>
-        body {
-            font-family: Arial;
-            background-color: #e3f2fd;
-            text-align: center;
-        }
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    background-color: #e3f2fd;
+}
 
-        .container {
-            max-width: 700px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-        }
+.container {
+    max-width: 600px;
+    margin: 50px auto;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    text-align: center;
+}
 
-        input, select {
-            width: 90%;
-            padding: 10px;
-            margin: 5px;
-        }
+h1 {
+    margin-bottom: 20px;
+}
 
-        button {
-            padding: 10px;
-            width: 95%;
-            background-color: #2196f3;
-            color: white;
-            border: none;
-            margin-top: 5px;
-            cursor: pointer;
-        }
+input, select {
+    width: 90%;
+    padding: 10px;
+    margin: 8px 0;
+}
 
-        table {
-            width: 100%;
-            margin-top: 20px;
-            border-collapse: collapse;
-        }
+button {
+    width: 95%;
+    padding: 10px;
+    background-color: #2196f3;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
 
-        th, td {
-            border: 1px solid black;
-            padding: 8px;
-        }
+button:hover {
+    background-color: #1976d2;
+}
 
-        th {
-            background-color: #2196f3;
-            color: white;
-        }
-    </style>
+table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 8px;
+}
+
+th {
+    background-color: #2196f3;
+    color: white;
+}
+
+.delete-btn {
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+}
+</style>
 </head>
 
 <body>
 
 <div class="container">
 
-    <h1>Haftalık Ders Programı</h1>
+<h1>Haftalık Ders Programı</h1>
 
-    <select id="gun">
-        <option>Pazartesi</option>
-        <option>Salı</option>
-        <option>Çarşamba</option>
-        <option>Perşembe</option>
-        <option>Cuma</option>
-    </select>
+<select id="gun">
+    <option>Pazartesi</option>
+    <option>Salı</option>
+    <option>Çarşamba</option>
+    <option>Perşembe</option>
+    <option>Cuma</option>
+</select>
 
-    <input type="text" id="saat" placeholder="Saat (örn: 10)">
-    <input type="text" id="ders" placeholder="Ders adı">
-    <input type="text" id="ogretmen" placeholder="Öğretmen">
-    <input type="text" id="sinif" placeholder="Sınıf">
-    <input type="text" id="kampus" placeholder="Kampüs">
+<input type="text" id="saat" placeholder="Saat (örn: 10)">
+<input type="text" id="ders" placeholder="Ders adı">
+<input type="text" id="ogretmen" placeholder="Öğretmen">
+<input type="text" id="sinif" placeholder="Sınıf">
+<input type="text" id="kampus" placeholder="Kampüs">
 
-    <button onclick="ekle()">Ekle</button>
+<button onclick="ekle()">Ekle</button>
 
-    <table>
-        <tr>
-            <th>Gün</th>
-            <th>Saat</th>
-            <th>Ders</th>
-            <th>Öğretmen</th>
-            <th>Sınıf</th>
-            <th>Kampüs</th>
-            <th>Sil</th>
-        </tr>
-    </table>
+<table>
+<tr>
+    <th>Gün</th>
+    <th>Saat</th>
+    <th>Ders</th>
+    <th>Öğretmen</th>
+    <th>Sınıf</th>
+    <th>Kampüs</th>
+    <th>Sil</th>
+</tr>
+</table>
 
 </div>
 
 <script>
 function ekle() {
+
     var gun = document.getElementById("gun").value;
     var saat = document.getElementById("saat").value;
     var ders = document.getElementById("ders").value;
@@ -97,19 +117,12 @@ function ekle() {
     var sinif = document.getElementById("sinif").value;
     var kampus = document.getElementById("kampus").value;
 
-    var tablo = document.querySelector("table");
-
-    // ÇAKIŞMA KONTROLÜ
-    for (var i = 1; i < tablo.rows.length; i++) {
-        var mevcutGun = tablo.rows[i].cells[0].innerText;
-        var mevcutSaat = tablo.rows[i].cells[1].innerText;
-
-        if (mevcutGun === gun && mevcutSaat === saat) {
-            alert("Bu saat dolu!");
-            return;
-        }
+    if(saat === "" || ders === ""){
+        alert("Saat ve ders boş olamaz!");
+        return;
     }
 
+    var tablo = document.querySelector("table");
     var satir = tablo.insertRow();
 
     satir.insertCell(0).innerText = gun;
@@ -119,14 +132,23 @@ function ekle() {
     satir.insertCell(4).innerText = sinif;
     satir.insertCell(5).innerText = kampus;
 
-    // SİL BUTONU
-    var silBtn = document.createElement("button");
-    silBtn.innerText = "Sil";
-    silBtn.onclick = function() {
-        tablo.deleteRow(satir.rowIndex);
+    var silHucre = satir.insertCell(6);
+    var btn = document.createElement("button");
+    btn.innerText = "Sil";
+    btn.className = "delete-btn";
+
+    btn.onclick = function() {
+        satir.remove();
     };
 
-    satir.insertCell(6).appendChild(silBtn);
+    silHucre.appendChild(btn);
+
+    // inputları temizle
+    document.getElementById("saat").value = "";
+    document.getElementById("ders").value = "";
+    document.getElementById("ogretmen").value = "";
+    document.getElementById("sinif").value = "";
+    document.getElementById("kampus").value = "";
 }
 </script>
 
