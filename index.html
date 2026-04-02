@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Haftalık Ders Programı</title>
+<title>Ders Programı</title>
 
 <style>
 body {
@@ -24,41 +24,30 @@ input, select {
     padding: 12px;
     margin: 6px;
     border-radius: 8px;
-    border: 1px solid #ccc;
 }
 
 button {
     width: 95%;
     padding: 12px;
-    margin-top: 10px;
-    background: linear-gradient(to right, #2196F3, #00BCD4);
+    background: #2196F3;
     color: white;
     border: none;
     border-radius: 8px;
-    cursor: pointer;
 }
 
 table {
     width: 100%;
     margin-top: 20px;
-    border-collapse: collapse;
 }
 
 th {
     background: #2196F3;
     color: white;
-    padding: 10px;
 }
 
 td {
     padding: 8px;
     border-bottom: 1px solid #ddd;
-}
-
-td button {
-    width: auto;
-    padding: 5px 10px;
-    margin: 2px;
 }
 
 .edit-btn { background: orange; }
@@ -69,139 +58,148 @@ td button {
 <body>
 
 <div class="container">
-    <h1>Haftalık Ders Programı</h1>
 
-    <select id="gun">
-        <option>Pazartesi</option>
-        <option>Salı</option>
-        <option>Çarşamba</option>
-        <option>Perşembe</option>
-        <option>Cuma</option>
-    </select>
+<h1>Ders Programı</h1>
 
-    <input type="text" id="saat" placeholder="Saat">
-    <input type="text" id="ders" placeholder="Ders adı">
-    <input type="text" id="ogretmen" placeholder="Öğretmen">
-    <input type="text" id="sinif" placeholder="Sınıf">
-    <input type="text" id="kampus" placeholder="Kampüs">
+<!-- FİLTRE -->
+<select onchange="filtrele(this.value)">
+    <option value="hepsi">Tümü</option>
+    <option>Pazartesi</option>
+    <option>Salı</option>
+    <option>Çarşamba</option>
+    <option>Perşembe</option>
+    <option>Cuma</option>
+</select>
 
-    <button onclick="ekle()">Ekle / Güncelle</button>
+<select id="gun">
+    <option>Pazartesi</option>
+    <option>Salı</option>
+    <option>Çarşamba</option>
+    <option>Perşembe</option>
+    <option>Cuma</option>
+</select>
 
-    <table id="tablo">
-        <tr>
-            <th>Gün</th>
-            <th>Saat</th>
-            <th>Ders</th>
-            <th>Öğretmen</th>
-            <th>Sınıf</th>
-            <th>Kampüs</th>
-            <th>İşlem</th>
-        </tr>
-    </table>
+<input id="saat" placeholder="Saat">
+<input id="ders" placeholder="Ders">
+<input id="ogretmen" placeholder="Öğretmen">
+<input id="sinif" placeholder="Sınıf">
+<input id="kampus" placeholder="Kampüs">
+
+<button onclick="ekle()">Ekle / Güncelle</button>
+
+<table id="tablo">
+<tr>
+<th>Gün</th>
+<th>Saat</th>
+<th>Ders</th>
+<th>Öğretmen</th>
+<th>Sınıf</th>
+<th>Kampüs</th>
+<th>İşlem</th>
+</tr>
+</table>
+
 </div>
 
 <script>
 let program = JSON.parse(localStorage.getItem("program")) || [];
 let editIndex = -1;
+let aktifFiltre = "hepsi";
 
-window.onload = function () {
-    program.forEach(veri => satirEkle(veri));
-};
+window.onload = tabloYenile;
 
 function ekle() {
-    var veri = {
-        gun: document.getElementById("gun").value,
-        saat: document.getElementById("saat").value,
-        ders: document.getElementById("ders").value,
-        ogretmen: document.getElementById("ogretmen").value,
-        sinif: document.getElementById("sinif").value,
-        kampus: document.getElementById("kampus").value
+    let veri = {
+        gun: gun.value,
+        saat: saat.value,
+        ders: ders.value,
+        ogretmen: ogretmen.value,
+        sinif: sinif.value,
+        kampus: kampus.value
     };
 
-    if(veri.saat === "" || veri.ders === "") {
-        alert("Saat ve ders zorunlu!");
-        return;
-    }
+    if(!veri.saat || !veri.ders) return alert("Boş bırakma!");
 
     if(editIndex === -1) {
         program.push(veri);
     } else {
         program[editIndex] = veri;
         editIndex = -1;
-        document.querySelector("button").innerText = "Ekle";
     }
 
     localStorage.setItem("program", JSON.stringify(program));
-    tabloYenile();
     temizle();
+    tabloYenile();
 }
 
 function satirEkle(veri, index) {
-    var tablo = document.getElementById("tablo");
-    var satir = tablo.insertRow();
 
-    satir.insertCell(0).innerText = veri.gun;
-    satir.insertCell(1).innerText = veri.saat;
-    satir.insertCell(2).innerText = veri.ders;
-    satir.insertCell(3).innerText = veri.ogretmen;
-    satir.insertCell(4).innerText = veri.sinif;
-    satir.insertCell(5).innerText = veri.kampus;
+    if(aktifFiltre !== "hepsi" && veri.gun !== aktifFiltre) return;
 
-    var btnCell = satir.insertCell(6);
+    let tr = tablo.insertRow();
 
-    // EDIT
-    var editBtn = document.createElement("button");
-    editBtn.innerText = "Edit";
-    editBtn.className = "edit-btn";
-    editBtn.onclick = function () {
-        document.getElementById("gun").value = veri.gun;
-        document.getElementById("saat").value = veri.saat;
-        document.getElementById("ders").value = veri.ders;
-        document.getElementById("ogretmen").value = veri.ogretmen;
-        document.getElementById("sinif").value = veri.sinif;
-        document.getElementById("kampus").value = veri.kampus;
+    tr.insertCell(0).innerText = veri.gun;
+    tr.insertCell(1).innerText = veri.saat;
+    tr.insertCell(2).innerText = veri.ders;
+    tr.insertCell(3).innerText = veri.ogretmen;
+    tr.insertCell(4).innerText = veri.sinif;
+    tr.insertCell(5).innerText = veri.kampus;
 
+    let td = tr.insertCell(6);
+
+    let edit = document.createElement("button");
+    edit.innerText = "Edit";
+    edit.className = "edit-btn";
+    edit.onclick = () => {
+        gun.value = veri.gun;
+        saat.value = veri.saat;
+        ders.value = veri.ders;
+        ogretmen.value = veri.ogretmen;
+        sinif.value = veri.sinif;
+        kampus.value = veri.kampus;
         editIndex = index;
-        document.querySelector("button").innerText = "Güncelle";
     };
 
-    // DELETE
-    var silBtn = document.createElement("button");
-    silBtn.innerText = "Sil";
-    silBtn.className = "delete-btn";
-    silBtn.onclick = function () {
-        program.splice(index, 1);
+    let sil = document.createElement("button");
+    sil.innerText = "Sil";
+    sil.className = "delete-btn";
+    sil.onclick = () => {
+        program.splice(index,1);
         localStorage.setItem("program", JSON.stringify(program));
         tabloYenile();
     };
 
-    btnCell.appendChild(editBtn);
-    btnCell.appendChild(silBtn);
+    td.appendChild(edit);
+    td.appendChild(sil);
 }
 
 function tabloYenile() {
-    var tablo = document.getElementById("tablo");
     tablo.innerHTML = `
-        <tr>
-            <th>Gün</th>
-            <th>Saat</th>
-            <th>Ders</th>
-            <th>Öğretmen</th>
-            <th>Sınıf</th>
-            <th>Kampüs</th>
-            <th>İşlem</th>
-        </tr>
+    <tr>
+    <th>Gün</th>
+    <th>Saat</th>
+    <th>Ders</th>
+    <th>Öğretmen</th>
+    <th>Sınıf</th>
+    <th>Kampüs</th>
+    <th>İşlem</th>
+    </tr>
     `;
 
-    program.forEach((veri, index) => satirEkle(veri, index));
+    program.forEach((v,i)=>satirEkle(v,i));
+}
+
+function filtrele(gunSecim) {
+    aktifFiltre = gunSecim;
+    tabloYenile();
 }
 
 function temizle() {
-    document.getElementById("saat").value = "";
-    document.getElementById("ders").value = "";
-    document.getElementById("ogretmen").value = "";
-    document.getElementById("sinif").value = "";
-    document.getElementById("kampus").value = "";
+    saat.value="";
+    ders.value="";
+    ogretmen.value="";
+    sinif.value="";
+    kampus.value="";
 }
 </script>
 
