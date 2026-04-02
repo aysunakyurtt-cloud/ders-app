@@ -43,7 +43,6 @@ button {
 
 .editBtn { background: orange; color:white; }
 .deleteBtn { background: red; color:white; }
-
 </style>
 </head>
 
@@ -71,12 +70,10 @@ let editIndex = null;
 const gunler = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma"];
 const saatler = ["09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00"];
 
-// Kaydet
 function kaydet(){
   localStorage.setItem("dersler", JSON.stringify(dersler));
 }
 
-// Liste
 function listeyiGoster(){
   const liste = document.getElementById("liste");
   liste.innerHTML = "";
@@ -95,7 +92,6 @@ function listeyiGoster(){
   });
 }
 
-// EKLE
 function ekle(){
   const veri = {
     ders: ders.value,
@@ -118,14 +114,12 @@ function ekle(){
   temizle();
 }
 
-// SİL
 function sil(i){
   dersler.splice(i,1);
   kaydet();
   listeyiGoster();
 }
 
-// EDİT
 function duzenle(i){
   const d = dersler[i];
 
@@ -137,7 +131,6 @@ function duzenle(i){
   editIndex = i;
 }
 
-// TEMİZLE
 function temizle(){
   ders.value="";
   ogretmen.value="";
@@ -157,18 +150,18 @@ function uygunMu(gun,saat,ders){
   );
 }
 
-// 🔥 KAMPÜS GRUPLA
-function kampusGrupla(){
-  const grup = {};
-
+// 🔥 Öğretmen hangi günlerde var
+function ogretmenGunleri(){
+  const map = {};
   dersler.forEach(d=>{
-    if(!grup[d.kampus]){
-      grup[d.kampus] = [];
+    if(!map[d.ogretmen]){
+      map[d.ogretmen] = new Set();
     }
-    grup[d.kampus].push(d);
+    if(d.gun){
+      map[d.ogretmen].add(d.gun);
+    }
   });
-
-  return grup;
+  return map;
 }
 
 // 🤖 AKILLI PROGRAM
@@ -180,42 +173,43 @@ function otomatikOlustur(){
     d.saat="";
   });
 
-  const gruplar = kampusGrupla();
-  let gunIndex = 0;
+  let ogretmenMap = {};
 
-  // her kampüs ayrı günlere dağıtılır
-  for(let kampus in gruplar){
+  dersler.forEach(ders=>{
 
-    let dersListesi = gruplar[kampus];
-    let gun = gunler[gunIndex % gunler.length];
-    let saatIndex = 0;
+    let tercihGunler = ogretmenMap[ders.ogretmen] || gunler;
 
-    dersListesi.forEach(ders=>{
+    let yerlesti = false;
 
-      while(saatIndex < saatler.length){
+    for(let g of tercihGunler){
+      for(let s of saatler){
 
-        let saat = saatler[saatIndex];
+        if(uygunMu(g,s,ders)){
+          ders.gun = g;
+          ders.saat = s;
 
-        if(uygunMu(gun,saat,ders)){
-          ders.gun = gun;
-          ders.saat = saat;
-          saatIndex++;
+          if(!ogretmenMap[ders.ogretmen]){
+            ogretmenMap[ders.ogretmen] = [];
+          }
+
+          if(!ogretmenMap[ders.ogretmen].includes(g)){
+            ogretmenMap[ders.ogretmen].push(g);
+          }
+
+          yerlesti = true;
           break;
         }
 
-        saatIndex++;
       }
+      if(yerlesti) break;
+    }
 
-    });
-
-    gunIndex++;
-  }
+  });
 
   kaydet();
   listeyiGoster();
 }
 
-// başlat
 listeyiGoster();
 
 </script>
