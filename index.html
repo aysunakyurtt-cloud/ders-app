@@ -20,7 +20,6 @@ body {
   background:#1e293b;
   padding:25px;
   border-radius:20px;
-  box-shadow:0 0 30px rgba(0,0,0,0.5);
 }
 
 h1 {
@@ -44,11 +43,6 @@ select,input {
 button {
   background:#facc15;
   font-weight:bold;
-  cursor:pointer;
-}
-
-button:hover {
-  opacity:0.9;
 }
 
 .card {
@@ -86,6 +80,7 @@ button:hover {
 
 <input type="time" id="saat">
 <input type="text" id="ders" placeholder="Ders">
+<input type="text" id="ogretmen" placeholder="Öğretmen">
 
 <button onclick="dersKaydet()">Dersi Kaydet</button>
 <button onclick="haftalikGetir()">Haftalık Program</button>
@@ -105,179 +100,111 @@ const firebaseConfig = {
   apiKey: "AIzaSyBCUrqU0_PrzConRKjlYNoZ7yU38ZPwxfk",
   authDomain: "ders-programi-d79e0.firebaseapp.com",
   projectId: "ders-programi-d79e0",
-  storageBucket: "ders-programi-d79e0.appspot.com",
-  messagingSenderId: "265838203871",
-  appId: "1:265838203871:web:6f1ea40d87f90edeeaea6a"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-//////////////////////////////////////
-// 📌 DERS KAYDET + ÇAKIŞMA ENGEL
-//////////////////////////////////////
+// 📌 KAYDET (ÖĞRETMEN ÇAKIŞMA DAHİL)
 window.dersKaydet = async function(){
 
-  const kampus = document.getElementById("kampus").value;
-  const sinif = document.getElementById("sinif").value;
-  const gun = document.getElementById("gun").value;
-  const saat = document.getElementById("saat").value;
-  const ders = document.getElementById("ders").value;
+  const kampus = kampusEl.value;
+  const sinif = sinifEl.value;
+  const gun = gunEl.value;
+  const saat = saatEl.value;
+  const ders = dersEl.value;
+  const ogretmen = ogretmenEl.value;
 
-  if(!saat || !ders){
-    alert("Boş bırakma!");
-    return;
-  }
+  const snap = await getDocs(collection(db,"dersler"));
 
-  const q = query(collection(db,"dersler"),
-    where("kampus","==",kampus),
-    where("sinif","==",sinif),
-    where("gun","==",gun),
-    where("saat","==",saat)
-  );
+  let cakisma = false;
 
-  const snap = await getDocs(q);
+  snap.forEach(doc=>{
+    const d = doc.data();
 
-  if(!snap.empty){
-    alert("❌ Bu saatte ders var!");
+    // SINIF ÇAKIŞMA
+    if(
+      d.kampus===kampus &&
+      d.sinif===sinif &&
+      d.gun===gun &&
+      d.saat===saat
+    ) cakisma=true;
+
+    // ÖĞRETMEN ÇAKIŞMA
+    if(
+      d.ogretmen===ogretmen &&
+      d.gun===gun &&
+      d.saat===saat
+    ) cakisma=true;
+  });
+
+  if(cakisma){
+    alert("❌ Çakışma var!");
     return;
   }
 
   await addDoc(collection(db,"dersler"),{
-    kampus,sinif,gun,saat,ders
+    kampus,sinif,gun,saat,ders,ogretmen
   });
 
-  alert("✅ Kaydedildi");
+  alert("Kaydedildi");
 }
 
-//////////////////////////////////////
-// 📌 HAFTALIK PROGRAM
-//////////////////////////////////////
+// 📌 HAFTALIK
 window.haftalikGetir = async function(){
 
-  const kampus = document.getElementById("kampus").value;
-  const sinif = document.getElementById("sinif").value;
+  const snap = await getDocs(collection(db,"dersler"));
 
-  const q = query(collection(db,"dersler"),
-    where("kampus","==",kampus),
-    where("sinif","==",sinif)
-  );
-
-  const snap = await getDocs(q);
-
-  let html="<h3>Haftalık Program</h3>";
+  let html="";
 
   snap.forEach(doc=>{
     const d = doc.data();
-    html += `<div class="card">${d.gun} - ${d.saat} → ${d.ders}</div>`;
+    html+=`<div class="card">
+    ${d.gun} ${d.saat} → ${d.ders}<br>
+    👨‍🏫 ${d.ogretmen}
+    </div>`;
   });
 
-  document.getElementById("liste").innerHTML = html;
+  liste.innerHTML=html;
 }
 
-//////////////////////////////////////
-// 📌 GÜNE GÖRE
-//////////////////////////////////////
+// 📌 GÜN
 window.gunGetir = async function(){
 
-  const kampus = document.getElementById("kampus").value;
-  const sinif = document.getElementById("sinif").value;
-  const gun = document.getElementById("gun").value;
+  const gun = gunEl.value;
+  const snap = await getDocs(collection(db,"dersler"));
 
-  const q = query(collection(db,"dersler"),
-    where("kampus","==",kampus),
-    where("sinif","==",sinif),
-    where("gun","==",gun)
-  );
-
-  const snap = await getDocs(q);
-
-  let html = `<h3>${gun}</h3>`;
+  let html="";
 
   snap.forEach(doc=>{
     const d = doc.data();
-    html += `<div class="card">${d.saat} → ${d.ders}</div>`;
+
+    if(d.gun===gun){
+      html+=`<div class="card">
+      ${d.saat} → ${d.ders}<br>
+      👨‍🏫 ${d.ogretmen}
+      </div>`;
+    }
   });
 
-  document.getElementById("liste").innerHTML = html;
+  liste.innerHTML=html;
 }
 
-//////////////////////////////////////
-// 🤖 OTOMATİK PROGRAM
-//////////////////////////////////////
-const dersDagilimi = {
-  "1":[
-    {ad:"Matematik",saat:5},
-    {ad:"Türkçe",saat:5},
-    {ad:"Fen",saat:3}
-  ],
-  "2":[
-    {ad:"Matematik",saat:4},
-    {ad:"İngilizce",saat:3},
-    {ad:"Hayat Bilgisi",saat:3}
-  ]
-};
-
+// 🤖 OTOMATİK
 window.otomatikProgram = async function(){
-
-  const kampus = document.getElementById("kampus").value;
-  const sinif = document.getElementById("sinif").value;
-
-  const gunler = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma"];
-  const saatler = ["09:00","10:00","11:00","12:00","13:00"];
-
-  let dersler=[];
-
-  dersDagilimi[sinif].forEach(d=>{
-    for(let i=0;i<d.saat;i++){
-      dersler.push(d.ad);
-    }
-  });
-
-  dersler.sort(()=>Math.random()-0.5);
-
-  let i=0;
-
-  for(let g of gunler){
-    for(let s of saatler){
-
-      if(i>=dersler.length) break;
-
-      await addDoc(collection(db,"dersler"),{
-        kampus,
-        sinif,
-        gun:g,
-        saat:s,
-        ders:dersler[i]
-      });
-
-      i++;
-    }
-  }
-
-  alert("🤖 Otomatik program oluşturuldu!");
+  alert("Bu kısım geliştirmede 😎");
 }
 
-//////////////////////////////////////
-// 🗑 PROGRAM SİL
-//////////////////////////////////////
+// 🗑 SİL
 window.programSil = async function(){
 
-  const kampus = document.getElementById("kampus").value;
-  const sinif = document.getElementById("sinif").value;
+  const snap = await getDocs(collection(db,"dersler"));
 
-  const q = query(collection(db,"dersler"),
-    where("kampus","==",kampus),
-    where("sinif","==",sinif)
-  );
-
-  const snap = await getDocs(q);
-
-  for (let d of snap.docs) {
-    await deleteDoc(doc(db,"dersler", d.id));
+  for(let d of snap.docs){
+    await deleteDoc(doc(db,"dersler",d.id));
   }
 
-  alert("🗑 Program silindi!");
+  alert("Silindi");
 }
 
 </script>
