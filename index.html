@@ -69,6 +69,7 @@ th {
 <div class="container">
     <h2>Ders Programı</h2>
 
+    <!-- FİLTRE -->
     <select id="filtre" onchange="tabloyuGuncelle()">
         <option value="Tümü">Tümü</option>
         <option>Pazartesi</option>
@@ -78,6 +79,7 @@ th {
         <option>Cuma</option>
     </select>
 
+    <!-- GÜN -->
     <select id="gun">
         <option>Pazartesi</option>
         <option>Salı</option>
@@ -112,7 +114,7 @@ th {
 
 <script>
 
-// 📌 LOCAL STORAGE
+// 📌 LOCAL STORAGE'DAN YÜKLE
 let dersler = JSON.parse(localStorage.getItem("dersler")) || [];
 
 // 📌 SAYFA AÇILINCA
@@ -138,6 +140,7 @@ function ekle() {
 
     dersler.push(yeniDers);
 
+    // 🔥 KAYDET
     localStorage.setItem("dersler", JSON.stringify(dersler));
 
     tabloyuGuncelle();
@@ -150,25 +153,25 @@ function ekle() {
     document.getElementById("kampus").value = "";
 }
 
-// 📌 TABLO GÜNCELLE + FİLTRE
+// 📌 TABLO + FİLTRE
 function tabloyuGuncelle() {
     const tablo = document.getElementById("tablo");
     const filtre = document.getElementById("filtre").value;
 
     tablo.innerHTML = "";
 
-    dersler.forEach((ders, index) => {
+    dersler.forEach((d, index) => {
 
-        if (filtre !== "Tümü" && ders.gun !== filtre) return;
+        if (filtre !== "Tümü" && d.gun !== filtre) return;
 
         tablo.innerHTML += `
             <tr>
-                <td>${ders.gun}</td>
-                <td>${ders.saat}</td>
-                <td>${ders.ders}</td>
-                <td>${ders.ogretmen}</td>
-                <td>${ders.sinif}</td>
-                <td>${ders.kampus}</td>
+                <td>${d.gun}</td>
+                <td>${d.saat}</td>
+                <td>${d.ders}</td>
+                <td>${d.ogretmen}</td>
+                <td>${d.sinif}</td>
+                <td>${d.kampus}</td>
                 <td>
                     <button class="sil-btn" onclick="sil(${index})">Sil</button>
                 </td>
@@ -180,7 +183,10 @@ function tabloyuGuncelle() {
 // 📌 SİL
 function sil(index) {
     dersler.splice(index, 1);
+
+    // 🔥 TEKRAR KAYDET
     localStorage.setItem("dersler", JSON.stringify(dersler));
+
     tabloyuGuncelle();
 }
 
