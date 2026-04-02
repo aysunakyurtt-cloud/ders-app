@@ -6,8 +6,6 @@
 
 <title>Ders Programı</title>
 
-<link rel="manifest" href="manifest.json">
-
 <style>
 
 body {
@@ -17,35 +15,29 @@ body {
   color:white;
 }
 
-/* ANA KART */
+/* KUTU */
 .container {
   max-width:480px;
   margin:60px auto;
   padding:30px;
   border-radius:25px;
-  background: rgba(30,41,59,0.8);
+  background: rgba(30,41,59,0.9);
   backdrop-filter: blur(20px);
-  box-shadow:
-    0 0 40px rgba(0,0,0,0.6),
-    0 0 20px rgba(250,204,21,0.1);
+  box-shadow:0 0 40px rgba(0,0,0,0.6);
 }
 
-/* BAŞLIK */
 h1 {
   text-align:center;
   color:#facc15;
-  font-size:28px;
-  margin-bottom:25px;
 }
 
 /* INPUT */
-select, input {
+input, select {
   width:100%;
   padding:14px;
-  margin-top:8px;
-  margin-bottom:18px;
+  margin-top:10px;
   border-radius:12px;
-  border:1px solid rgba(255,255,255,0.05);
+  border:none;
   background:#020617;
   color:white;
 }
@@ -54,32 +46,33 @@ select, input {
 button {
   width:100%;
   padding:14px;
-  border:none;
-  border-radius:12px;
-  font-weight:600;
   margin-top:10px;
+  border-radius:12px;
+  border:none;
+  font-weight:bold;
   cursor:pointer;
 }
 
-/* ANA BUTON */
-.main-btn {
-  background: linear-gradient(45deg,#facc15,#f59e0b);
+.main {
+  background:#facc15;
   color:black;
 }
 
-/* DİĞER */
-.secondary {
+.sec {
   background:#020617;
   color:#facc15;
-  border:1px solid rgba(250,204,21,0.3);
+  border:1px solid #facc15;
 }
 
-/* CARD */
+.hidden {
+  display:none;
+}
+
 .card {
   background:#020617;
-  padding:15px;
-  border-radius:12px;
+  padding:12px;
   margin-top:10px;
+  border-radius:10px;
   border-left:4px solid #facc15;
 }
 
@@ -91,6 +84,16 @@ button {
 <div class="container">
 
 <h1>Ders Programı</h1>
+
+<!-- LOGIN -->
+<div id="loginBox">
+<input id="user" placeholder="Kullanıcı adı">
+<input id="pass" type="password" placeholder="Şifre">
+<button class="main" onclick="giris()">Giriş Yap</button>
+</div>
+
+<!-- PANEL -->
+<div id="panel" class="hidden">
 
 <select id="kampus">
 <option>Haliç</option>
@@ -112,14 +115,19 @@ button {
 </select>
 
 <input type="time" id="saat">
-<input type="text" id="ders" placeholder="Ders">
-<input type="text" id="ogretmen" placeholder="Öğretmen">
+<input id="ders" placeholder="Ders">
+<input id="ogretmen" placeholder="Öğretmen">
 
-<button class="main-btn" onclick="dersKaydet()">Dersi Kaydet</button>
+<button class="main" onclick="dersKaydet()">Dersi Kaydet</button>
+<button class="sec" onclick="programSil()">Programı Temizle</button>
 
-<button class="secondary" onclick="haftalikGetir()">Haftalık Program</button>
-<button class="secondary" onclick="gunGetir()">Seçilen Gün</button>
-<button class="secondary" onclick="programSil()">Programı Temizle</button>
+</div>
+
+<hr>
+
+<!-- HERKES GÖREBİLİR -->
+<button class="sec" onclick="haftalik()">Haftalık Program</button>
+<button class="sec" onclick="gunluk()">Seçilen Gün</button>
 
 <div id="liste"></div>
 
@@ -139,15 +147,30 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 📌 DERS EKLE (ÇAKIŞMA KONTROL)
+// 🔐 LOGIN
+window.giris = function(){
+
+  const u = document.getElementById("user").value;
+  const p = document.getElementById("pass").value;
+
+  if(u==="admin" && p==="1234"){
+    document.getElementById("loginBox").style.display="none";
+    document.getElementById("panel").classList.remove("hidden");
+    alert("Giriş başarılı");
+  } else {
+    alert("Hatalı giriş");
+  }
+}
+
+// 📌 DERS EKLE
 window.dersKaydet = async function(){
 
-  const kampus = document.getElementById("kampus").value;
-  const sinif = document.getElementById("sinif").value;
-  const gun = document.getElementById("gun").value;
-  const saat = document.getElementById("saat").value;
-  const ders = document.getElementById("ders").value;
-  const ogretmen = document.getElementById("ogretmen").value;
+  const kampus = kampusEl.value;
+  const sinif = sinifEl.value;
+  const gun = gunEl.value;
+  const saat = saatEl.value;
+  const ders = dersEl.value;
+  const ogretmen = ogretmenEl.value;
 
   const snap = await getDocs(collection(db,"dersler"));
 
@@ -156,7 +179,6 @@ window.dersKaydet = async function(){
   snap.forEach(doc=>{
     const d = doc.data();
 
-    // SINIF ÇAKIŞMA
     if(
       d.kampus===kampus &&
       d.sinif===sinif &&
@@ -164,7 +186,6 @@ window.dersKaydet = async function(){
       d.saat===saat
     ) cakisma=true;
 
-    // ÖĞRETMEN ÇAKIŞMA
     if(
       d.ogretmen===ogretmen &&
       d.gun===gun &&
@@ -185,47 +206,43 @@ window.dersKaydet = async function(){
 }
 
 // 📊 HAFTALIK
-window.haftalikGetir = async function(){
+window.haftalik = async function(){
 
   const snap = await getDocs(collection(db,"dersler"));
-
   let html="";
 
   snap.forEach(doc=>{
     const d = doc.data();
-
     html+=`
     <div class="card">
-      <b>${d.gun}</b> ${d.saat}<br>
-      📘 ${d.ders}<br>
-      👨‍🏫 ${d.ogretmen}
+    ${d.gun} ${d.saat}<br>
+    📘 ${d.ders}<br>
+    👨‍🏫 ${d.ogretmen}
     </div>`;
   });
 
-  document.getElementById("liste").innerHTML=html;
+  liste.innerHTML=html;
 }
 
-// 📅 GÜN
-window.gunGetir = async function(){
+// 📅 GÜNLÜK
+window.gunluk = async function(){
 
   const gun = document.getElementById("gun").value;
   const snap = await getDocs(collection(db,"dersler"));
-
   let html="";
 
   snap.forEach(doc=>{
     const d = doc.data();
-
     if(d.gun===gun){
       html+=`
       <div class="card">
-        ${d.saat} → ${d.ders}<br>
-        👨‍🏫 ${d.ogretmen}
+      ${d.saat} → ${d.ders}<br>
+      👨‍🏫 ${d.ogretmen}
       </div>`;
     }
   });
 
-  document.getElementById("liste").innerHTML=html;
+  liste.innerHTML=html;
 }
 
 // 🗑 TEMİZLE
@@ -240,13 +257,6 @@ window.programSil = async function(){
   alert("Silindi");
 }
 
-</script>
-
-<!-- PWA -->
-<script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js");
-}
 </script>
 
 </body>
