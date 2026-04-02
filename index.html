@@ -65,6 +65,8 @@ button {
 <option>Haliç</option>
 <option>Bahçeşehir</option>
 <option>Başakşehir</option>
+<option>Pendik</option>
+<option>Florya</option>
 </select>
 
 <select id="sinif">
@@ -72,6 +74,7 @@ button {
 <option>2</option>
 <option>3</option>
 <option>4</option>
+<option>5</option>
 </select>
 
 <select id="gun">
@@ -95,13 +98,13 @@ button {
 
 </div>
 
-<!-- 🔥 FIREBASE -->
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs } 
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+// 🔥 SENİN CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyBCUrqU0_PrzConRKjlYNoZ7yU38ZPwxfk",
   authDomain: "ders-programi-d79e0.firebaseapp.com",
@@ -115,20 +118,48 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 window.ekle = async function() {
+
   const kampus = document.getElementById("kampus").value;
   const sinif = document.getElementById("sinif").value;
   const gun = document.getElementById("gun").value;
   const saat = document.getElementById("saat").value;
   const ders = document.getElementById("ders").value;
 
-  await addDoc(collection(db, "dersler"), {
-    kampus, sinif, gun, saat, ders
+  const querySnapshot = await getDocs(collection(db, "dersler"));
+
+  let cakisma = false;
+
+  querySnapshot.forEach((doc) => {
+    const d = doc.data();
+
+    if (
+      d.kampus === kampus &&
+      d.sinif === sinif &&
+      d.gun === gun &&
+      d.saat === saat
+    ) {
+      cakisma = true;
+    }
   });
 
-  alert("Kaydedildi ✅");
+  if (cakisma) {
+    alert("❌ Bu saatte zaten ders var!");
+    return;
+  }
+
+  await addDoc(collection(db, "dersler"), {
+    kampus,
+    sinif,
+    gun,
+    saat,
+    ders
+  });
+
+  alert("✅ Ders eklendi!");
 }
 
 window.getir = async function() {
+
   const liste = document.getElementById("liste");
   liste.innerHTML = "";
 
@@ -145,6 +176,7 @@ window.getir = async function() {
   });
 
   for (let gun in data) {
+
     liste.innerHTML += `<div class="day">${gun}</div>`;
 
     data[gun].sort((a,b)=>a.saat.localeCompare(b.saat));
@@ -152,7 +184,7 @@ window.getir = async function() {
     data[gun].forEach(d => {
       liste.innerHTML += `
       <div class="card">
-        ${d.saat} - ${d.ders}
+        ${d.saat} - ${d.ders} (Sınıf ${d.sinif} / ${d.kampus})
       </div>`;
     });
   }
