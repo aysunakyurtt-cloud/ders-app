@@ -19,10 +19,6 @@ body {
     border-radius: 15px;
 }
 
-h1 {
-    margin-bottom: 20px;
-}
-
 input, select {
     width: 90%;
     padding: 12px;
@@ -40,10 +36,6 @@ button {
     border: none;
     border-radius: 8px;
     cursor: pointer;
-}
-
-button:hover {
-    opacity: 0.9;
 }
 
 table {
@@ -64,10 +56,13 @@ td {
 }
 
 td button {
-    background: red;
     width: auto;
     padding: 5px 10px;
+    margin: 2px;
 }
+
+.edit-btn { background: orange; }
+.delete-btn { background: red; }
 </style>
 </head>
 
@@ -84,13 +79,13 @@ td button {
         <option>Cuma</option>
     </select>
 
-    <input type="text" id="saat" placeholder="Saat (örn: 10)">
+    <input type="text" id="saat" placeholder="Saat">
     <input type="text" id="ders" placeholder="Ders adı">
     <input type="text" id="ogretmen" placeholder="Öğretmen">
     <input type="text" id="sinif" placeholder="Sınıf">
     <input type="text" id="kampus" placeholder="Kampüs">
 
-    <button onclick="ekle()">Ekle</button>
+    <button onclick="ekle()">Ekle / Güncelle</button>
 
     <table id="tablo">
         <tr>
@@ -100,45 +95,108 @@ td button {
             <th>Öğretmen</th>
             <th>Sınıf</th>
             <th>Kampüs</th>
-            <th>Sil</th>
+            <th>İşlem</th>
         </tr>
     </table>
 </div>
 
 <script>
-function ekle() {
-    var gun = document.getElementById("gun").value;
-    var saat = document.getElementById("saat").value;
-    var ders = document.getElementById("ders").value;
-    var ogretmen = document.getElementById("ogretmen").value;
-    var sinif = document.getElementById("sinif").value;
-    var kampus = document.getElementById("kampus").value;
+let program = JSON.parse(localStorage.getItem("program")) || [];
+let editIndex = -1;
 
-    if(saat === "" || ders === "") {
-        alert("Lütfen saat ve ders gir!");
+window.onload = function () {
+    program.forEach(veri => satirEkle(veri));
+};
+
+function ekle() {
+    var veri = {
+        gun: document.getElementById("gun").value,
+        saat: document.getElementById("saat").value,
+        ders: document.getElementById("ders").value,
+        ogretmen: document.getElementById("ogretmen").value,
+        sinif: document.getElementById("sinif").value,
+        kampus: document.getElementById("kampus").value
+    };
+
+    if(veri.saat === "" || veri.ders === "") {
+        alert("Saat ve ders zorunlu!");
         return;
     }
 
+    if(editIndex === -1) {
+        program.push(veri);
+    } else {
+        program[editIndex] = veri;
+        editIndex = -1;
+        document.querySelector("button").innerText = "Ekle";
+    }
+
+    localStorage.setItem("program", JSON.stringify(program));
+    tabloYenile();
+    temizle();
+}
+
+function satirEkle(veri, index) {
     var tablo = document.getElementById("tablo");
     var satir = tablo.insertRow();
 
-    satir.insertCell(0).innerText = gun;
-    satir.insertCell(1).innerText = saat;
-    satir.insertCell(2).innerText = ders;
-    satir.insertCell(3).innerText = ogretmen;
-    satir.insertCell(4).innerText = sinif;
-    satir.insertCell(5).innerText = kampus;
+    satir.insertCell(0).innerText = veri.gun;
+    satir.insertCell(1).innerText = veri.saat;
+    satir.insertCell(2).innerText = veri.ders;
+    satir.insertCell(3).innerText = veri.ogretmen;
+    satir.insertCell(4).innerText = veri.sinif;
+    satir.insertCell(5).innerText = veri.kampus;
 
-    var silBtn = document.createElement("button");
-    silBtn.innerText = "Sil";
+    var btnCell = satir.insertCell(6);
 
-    silBtn.onclick = function () {
-        satir.remove();
+    // EDIT
+    var editBtn = document.createElement("button");
+    editBtn.innerText = "Edit";
+    editBtn.className = "edit-btn";
+    editBtn.onclick = function () {
+        document.getElementById("gun").value = veri.gun;
+        document.getElementById("saat").value = veri.saat;
+        document.getElementById("ders").value = veri.ders;
+        document.getElementById("ogretmen").value = veri.ogretmen;
+        document.getElementById("sinif").value = veri.sinif;
+        document.getElementById("kampus").value = veri.kampus;
+
+        editIndex = index;
+        document.querySelector("button").innerText = "Güncelle";
     };
 
-    satir.insertCell(6).appendChild(silBtn);
+    // DELETE
+    var silBtn = document.createElement("button");
+    silBtn.innerText = "Sil";
+    silBtn.className = "delete-btn";
+    silBtn.onclick = function () {
+        program.splice(index, 1);
+        localStorage.setItem("program", JSON.stringify(program));
+        tabloYenile();
+    };
 
-    // input temizleme
+    btnCell.appendChild(editBtn);
+    btnCell.appendChild(silBtn);
+}
+
+function tabloYenile() {
+    var tablo = document.getElementById("tablo");
+    tablo.innerHTML = `
+        <tr>
+            <th>Gün</th>
+            <th>Saat</th>
+            <th>Ders</th>
+            <th>Öğretmen</th>
+            <th>Sınıf</th>
+            <th>Kampüs</th>
+            <th>İşlem</th>
+        </tr>
+    `;
+
+    program.forEach((veri, index) => satirEkle(veri, index));
+}
+
+function temizle() {
     document.getElementById("saat").value = "";
     document.getElementById("ders").value = "";
     document.getElementById("ogretmen").value = "";
