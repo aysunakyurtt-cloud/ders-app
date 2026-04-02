@@ -2,29 +2,73 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Akıllı Ders Programı</title>
+<title>Ders Programı Pro</title>
 
 <style>
-body {
+body{
   margin:0;
-  font-family: Arial;
-  background: #020617;
+  font-family:Arial;
+  background:#020617;
   color:white;
 }
 
-.container {
-  max-width:1000px;
-  margin:40px auto;
+/* HEADER */
+h1{
+  text-align:center;
+  color:#facc15;
+  margin:20px;
+}
+
+/* GRID */
+.program{
+  display:grid;
+  grid-template-columns: 80px repeat(6, 1fr);
+  gap:10px;
   padding:20px;
 }
 
-h1 {
+/* SAATLER */
+.saat{
   text-align:center;
+  color:#94a3b8;
+}
+
+/* GÜN */
+.gun{
+  text-align:right;
+  padding-right:10px;
   color:#facc15;
 }
 
-input,button,select {
+/* DERS BLOK */
+.ders{
+  background:#facc15;
+  color:black;
+  padding:10px;
+  border-radius:10px;
+  font-weight:bold;
+  font-size:13px;
+  box-shadow:0 0 10px rgba(250,204,21,0.4);
+}
+
+/* GRID CELL */
+.hucre{
+  min-height:60px;
+  background:#0f172a;
+  border-radius:8px;
+  position:relative;
+}
+
+/* FORM */
+.form{
+  max-width:600px;
+  margin:20px auto;
+  background:#0f172a;
+  padding:20px;
+  border-radius:10px;
+}
+
+input,select,button{
   width:100%;
   padding:10px;
   margin-top:10px;
@@ -32,194 +76,88 @@ input,button,select {
   border:none;
 }
 
-button {
+button{
   background:#facc15;
   font-weight:bold;
-  cursor:pointer;
-}
-
-table {
-  width:100%;
-  margin-top:20px;
-  border-collapse:collapse;
-}
-
-th, td {
-  border:1px solid #334155;
-  padding:10px;
-  text-align:center;
-}
-
-th {
-  background:black;
-  color:#facc15;
-}
-
-.card {
-  background:#0f172a;
-  padding:15px;
-  border-radius:10px;
-  margin-top:15px;
 }
 </style>
-</head>
 
+</head>
 <body>
 
-<div class="container">
+<h1>📅 Ders Programı</h1>
 
-<h1>🤖 Akıllı Ders Programı</h1>
-
-<!-- ÖĞRETMEN EKLE -->
-<div class="card">
-<h3>👨‍🏫 Öğretmen Ekle</h3>
-<input id="ogretmenAd" placeholder="Ad">
-<input id="ogretmenBrans" placeholder="Branş">
-<button onclick="ogretmenEkle()">Ekle</button>
-</div>
-
-<!-- DERS EKLE -->
-<div class="card">
-<h3>📚 Ders Planı</h3>
-<select id="sinif">
-<option value="1">1. Sınıf</option>
-<option value="2">2. Sınıf</option>
+<div class="form">
+<select id="gun">
+<option>Pazartesi</option>
+<option>Salı</option>
+<option>Çarşamba</option>
+<option>Perşembe</option>
+<option>Cuma</option>
 </select>
 
-<input id="dersAdi" placeholder="Ders">
-<input id="dersSaat" type="number" placeholder="Haftalık Saat">
+<input id="saat" type="time">
+<input id="ders" placeholder="Ders">
+<input id="ogretmen" placeholder="Öğretmen">
 
-<button onclick="dersEkle()">Ekle</button>
+<button onclick="ekle()">Dersi Kaydet</button>
+<button onclick="ciz()">Programı Göster</button>
 </div>
 
-<!-- OLUŞTUR -->
-<button onclick="programOlustur()">🚀 OTOMATİK PROGRAM OLUŞTUR</button>
-
-<div id="tablo"></div>
-
-</div>
+<div id="program"></div>
 
 <script>
 
-let ogretmenler = [];
-let dersler = [];
+let programData = [];
 
-// öğretmen ekle
-function ogretmenEkle(){
-  ogretmenler.push({
-    ad: ogretmenAd.value,
-    brans: ogretmenBrans.value
+function ekle(){
+  programData.push({
+    gun: gun.value,
+    saat: saat.value,
+    ders: ders.value,
+    ogretmen: ogretmen.value
   });
-  alert("Öğretmen eklendi");
+
+  alert("Eklendi");
 }
 
-// ders ekle
-function dersEkle(){
-  dersler.push({
-    sinif: sinif.value,
-    ders: dersAdi.value,
-    haftalikSaat: Number(dersSaat.value)
-  });
-  alert("Ders eklendi");
-}
+function ciz(){
 
-// PROGRAM OLUŞTUR
-function programOlustur(){
+  const gunler=["Pazartesi","Salı","Çarşamba","Perşembe","Cuma"];
+  const saatler=["09:00","10:00","11:00","12:00","13:00","14:00"];
 
-  const gunler = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma"];
-  const saatler = ["09:00","10:00","11:00","12:00","13:00","14:00"];
+  let html = `<div class="program">`;
 
-  let program = [];
-  let dolu = {};
-
-  function uygunMu(ogretmen, gun, saat){
-    return !program.some(p =>
-      p.ogretmen === ogretmen &&
-      p.gun === gun &&
-      p.saat === saat
-    );
-  }
-
-  dersler.forEach(dersItem => {
-
-    let kalan = dersItem.haftalikSaat;
-
-    while(kalan > 0){
-
-      let yerlesti = false;
-
-      for(let gun of gunler){
-        for(let saat of saatler){
-
-          const key = dersItem.sinif + gun + saat;
-
-          if(dolu[key]) continue;
-
-          const ogretmen = ogretmenler.find(o =>
-            o.brans.toLowerCase() === dersItem.ders.toLowerCase()
-          );
-
-          if(!ogretmen) continue;
-
-          if(!uygunMu(ogretmen.ad, gun, saat)) continue;
-
-          program.push({
-            sinif: dersItem.sinif,
-            ders: dersItem.ders,
-            ogretmen: ogretmen.ad,
-            gun,
-            saat
-          });
-
-          dolu[key] = true;
-          kalan--;
-          yerlesti = true;
-          break;
-        }
-        if(yerlesti) break;
-      }
-
-      if(!yerlesti){
-        alert("Yer bulunamadı: " + dersItem.ders);
-        break;
-      }
-    }
-
-  });
-
-  tabloyuCiz(program);
-}
-
-// TABLO
-function tabloyuCiz(program){
-
-  const gunler = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma"];
-  const saatler = ["09:00","10:00","11:00","12:00","13:00","14:00"];
-
-  let veri = {};
-
-  program.forEach(p=>{
-    if(!veri[p.saat]) veri[p.saat]={};
-    veri[p.saat][p.gun] = p.ders + "<br><small>"+p.ogretmen+"</small>";
-  });
-
-  let html = "<table><tr><th>Saat</th>";
-  gunler.forEach(g=> html+="<th>"+g+"</th>");
-  html+="</tr>";
-
+  // ÜST SAATLER
+  html += `<div></div>`;
   saatler.forEach(s=>{
-    html+="<tr><td>"+s+"</td>";
-
-    gunler.forEach(g=>{
-      html+="<td>"+(veri[s]?.[g] || "-")+"</td>";
-    });
-
-    html+="</tr>";
+    html += `<div class="saat">${s}</div>`;
   });
 
-  html+="</table>";
+  // GÜNLER
+  gunler.forEach(gun=>{
+    html += `<div class="gun">${gun}</div>`;
 
-  document.getElementById("tablo").innerHTML = html;
+    saatler.forEach(saat=>{
+      let ders = programData.find(p => p.gun===gun && p.saat===saat);
+
+      if(ders){
+        html += `
+        <div class="hucre">
+          <div class="ders">
+            ${ders.ders}<br>
+            <small>${ders.ogretmen}</small>
+          </div>
+        </div>`;
+      }else{
+        html += `<div class="hucre"></div>`;
+      }
+    });
+  });
+
+  html += `</div>`;
+
+  document.getElementById("program").innerHTML = html;
 }
 
 </script>
