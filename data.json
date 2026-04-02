@@ -1,0 +1,6 @@
+[
+  {"kampus":"bahçelievler","sinif":"1","gun":"Pazartesi","saat":"11:00","ders":"Türkçe"},
+  {"kampus":"bahçelievler","sinif":"1","gun":"Salı","saat":"10:00","ders":"Matematik"},
+  {"kampus":"başakşehir","sinif":"2","gun":"Çarşamba","saat":"09:00","ders":"Fen"},
+  {"kampus":"kartal","sinif":"3","gun":"Perşembe","saat":"12:00","ders":"İngilizce"}
+]
