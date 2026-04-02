@@ -41,6 +41,8 @@ button {
   cursor:pointer;
 }
 
+.hidden { display:none; }
+
 /* TABLO */
 table {
   width:100%;
@@ -70,8 +72,6 @@ td {
 .fen { background:#16a34a; }
 .ingilizce { background:#9333ea; }
 .diger { background:#475569; }
-
-.hidden { display:none; }
 
 </style>
 </head>
@@ -112,7 +112,7 @@ td {
 </select>
 
 <input type="time" id="saat">
-<input id="ders" placeholder="Ders (Matematik, Türkçe...)">
+<input id="ders" placeholder="Ders (Matematik vb)">
 <input id="ogretmen" placeholder="Öğretmen">
 
 <button onclick="dersKaydet()">Dersi Kaydet</button>
@@ -147,14 +147,34 @@ window.giris = function(){
   } else alert("Hatalı giriş");
 }
 
+// SAAT YUVARLAMA
+function saatDuzenle(saat){
+
+  const saatMap = {
+    "08":"09:00",
+    "09":"09:00",
+    "10":"10:00",
+    "11":"11:00",
+    "12":"12:00",
+    "13":"13:00",
+    "14":"14:00"
+  };
+
+  const s = saat.split(":")[0];
+  return saatMap[s] || "09:00";
+}
+
 // KAYDET
 window.dersKaydet = async function(){
+
+  let saat = document.getElementById("saat").value;
+  saat = saatDuzenle(saat);
 
   const data = {
     kampus: kampus.value,
     sinif: sinif.value,
     gun: gun.value,
-    saat: saat.value,
+    saat: saat,
     ders: ders.value,
     ogretmen: ogretmen.value
   };
@@ -181,17 +201,17 @@ window.dersKaydet = async function(){
   });
 
   if(cakisma){
-    alert("Çakışma var!");
+    alert("❌ Çakışma var!");
     return;
   }
 
   await addDoc(collection(db,"dersler"),data);
-  alert("Kaydedildi");
+
+  alert("✅ Kaydedildi");
 }
 
-// 🎨 RENK BELİRLE
+// RENK
 function renkGetir(ders){
-
   ders = ders.toLowerCase();
 
   if(ders.includes("mat")) return "matematik";
@@ -202,8 +222,11 @@ function renkGetir(ders){
   return "diger";
 }
 
-// 📊 TABLO
+// TABLO
 window.tabloGetir = async function(){
+
+  const seciliKampus = kampus.value;
+  const seciliSinif = sinif.value;
 
   const snap = await getDocs(collection(db,"dersler"));
 
@@ -215,7 +238,11 @@ window.tabloGetir = async function(){
   snap.forEach(doc=>{
     const d = doc.data();
 
+    if(d.kampus !== seciliKampus) return;
+    if(d.sinif !== seciliSinif) return;
+
     if(!veri[d.saat]) veri[d.saat] = {};
+
     veri[d.saat][d.gun] = {
       ders:d.ders,
       ogretmen:d.ogretmen
@@ -231,15 +258,15 @@ window.tabloGetir = async function(){
     html+="<tr><td>"+s+"</td>";
 
     gunler.forEach(g=>{
-      const veriCell = veri[s]?.[g];
+      const cell = veri[s]?.[g];
 
-      if(veriCell){
-        const renk = renkGetir(veriCell.ders);
+      if(cell){
+        const renk = renkGetir(cell.ders);
 
         html+=`
         <td class="${renk}">
-        ${veriCell.ders}<br>
-        <small>${veriCell.ogretmen}</small>
+          ${cell.ders}<br>
+          <small>${cell.ogretmen}</small>
         </td>`;
       } else {
         html+="<td>-</td>";
