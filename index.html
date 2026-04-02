@@ -3,56 +3,59 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Ders Programı</title>
 
 <style>
 body {
-  font-family: 'Segoe UI';
-  margin: 0;
+  margin:0;
+  font-family: Arial;
   background: linear-gradient(135deg,#0f172a,#1e293b);
-  color: white;
+  color:white;
 }
 
 .container {
-  max-width: 800px;
-  margin: 30px auto;
-  background: rgba(30,41,59,0.9);
-  padding: 25px;
-  border-radius: 20px;
+  max-width:500px;
+  margin:40px auto;
+  background:#1e293b;
+  padding:25px;
+  border-radius:20px;
+  box-shadow:0 0 30px rgba(0,0,0,0.5);
 }
 
 h1 {
-  text-align: center;
-  color: #FFD700;
+  text-align:center;
+  color:#facc15;
 }
 
-input, select {
-  width: 100%;
-  padding: 12px;
-  margin: 8px 0;
-  border-radius: 10px;
-  border: none;
-  background: #0f172a;
-  color: white;
+select,input,button {
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border-radius:10px;
+  border:none;
+}
+
+select,input {
+  background:#0f172a;
+  color:white;
 }
 
 button {
-  width: 100%;
-  padding: 12px;
-  margin-top: 10px;
-  border-radius: 10px;
-  border: none;
-  background: #FFD700;
-  font-weight: bold;
-  cursor: pointer;
+  background:#facc15;
+  font-weight:bold;
+  cursor:pointer;
 }
 
-.kart {
-  background: #0f172a;
-  padding: 15px;
-  margin-top: 10px;
-  border-radius: 10px;
-  border-left: 5px solid #FFD700;
+button:hover {
+  opacity:0.9;
+}
+
+.card {
+  background:#0f172a;
+  margin-top:10px;
+  padding:10px;
+  border-radius:10px;
 }
 </style>
 </head>
@@ -60,23 +63,17 @@ button {
 <body>
 
 <div class="container">
-
 <h1>Ders Programı</h1>
 
 <select id="kampus">
 <option>Haliç</option>
 <option>Bahçeşehir</option>
-<option>Başakşehir</option>
-<option>Pendik</option>
-<option>Florya</option>
+<option>Beykent</option>
 </select>
 
 <select id="sinif">
-<option>1</option>
-<option>2</option>
-<option>3</option>
-<option>4</option>
-<option>5</option>
+<option value="1">1. Sınıf</option>
+<option value="2">2. Sınıf</option>
 </select>
 
 <select id="gun">
@@ -90,152 +87,162 @@ button {
 <input type="time" id="saat">
 <input type="text" id="ders" placeholder="Ders">
 
-<button onclick="ekle()">Dersi Kaydet</button>
-
-<button onclick="getir()">Haftalık Program</button>
+<button onclick="dersKaydet()">Dersi Kaydet</button>
+<button onclick="haftalikGetir()">Haftalık Program</button>
 <button onclick="gunGetir()">Seçilen Gün</button>
+<button onclick="otomatikProgram()">🤖 Otomatik Program</button>
 
 <div id="liste"></div>
-
 </div>
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs } 
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBCUrqU0_PrzConRKjlYNoZ7yU38ZPwxfk",
   authDomain: "ders-programi-d79e0.firebaseapp.com",
   projectId: "ders-programi-d79e0",
+  storageBucket: "ders-programi-d79e0.appspot.com",
+  messagingSenderId: "265838203871",
+  appId: "1:265838203871:web:6f1ea40d87f90edeeaea6a"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// EKLE
-window.ekle = async function() {
+// 📌 Ders Kaydet
+window.dersKaydet = async function(){
 
-  const kampus = kampus.value;
-  const sinif = sinif.value;
+  const kampus = document.getElementById("kampus").value;
+  const sinif = document.getElementById("sinif").value;
   const gun = document.getElementById("gun").value;
   const saat = document.getElementById("saat").value;
   const ders = document.getElementById("ders").value;
-  const ogretmen = prompt("Öğretmen:");
 
-  const querySnapshot = await getDocs(collection(db, "dersler"));
+  // ÇAKIŞMA KONTROL
+  const q = query(collection(db,"dersler"),
+    where("kampus","==",kampus),
+    where("sinif","==",sinif),
+    where("gun","==",gun),
+    where("saat","==",saat)
+  );
 
-  let cakisma = false;
+  const snap = await getDocs(q);
 
-  querySnapshot.forEach(doc => {
-    const d = doc.data();
-
-    if (
-      d.kampus === kampus &&
-      d.sinif === sinif &&
-      d.gun === gun &&
-      d.saat === saat
-    ) cakisma = true;
-  });
-
-  if (cakisma) {
-    alert("❌ Çakışma var!");
+  if(!snap.empty){
+    alert("❌ Bu saatte ders var!");
     return;
   }
 
-  await addDoc(collection(db, "dersler"), {
-    kampus, sinif, gun, saat, ders, ogretmen
+  await addDoc(collection(db,"dersler"),{
+    kampus,sinif,gun,saat,ders
   });
 
-  alert("Kaydedildi");
+  alert("✅ Kaydedildi");
 }
 
-// HAFTALIK TABLO
-window.getir = async function() {
+// 📌 Haftalık Program
+window.haftalikGetir = async function(){
 
-  const kampusSec = kampus.value;
-  const sinifSec = sinif.value;
+  const kampus = document.getElementById("kampus").value;
+  const sinif = document.getElementById("sinif").value;
 
-  const querySnapshot = await getDocs(collection(db, "dersler"));
+  const q = query(collection(db,"dersler"),
+    where("kampus","==",kampus),
+    where("sinif","==",sinif)
+  );
 
-  let saatler = [];
-  let program = {};
+  const snap = await getDocs(q);
 
-  querySnapshot.forEach(doc => {
+  let html="";
+
+  snap.forEach(doc=>{
     const d = doc.data();
-
-    if (d.kampus !== kampusSec || d.sinif !== sinifSec) return;
-
-    if (!program[d.saat]) program[d.saat] = {};
-    program[d.saat][d.gun] = d.ders;
-
-    if (!saatler.includes(d.saat)) saatler.push(d.saat);
+    html += `<div class="card">${d.gun} - ${d.saat} → ${d.ders}</div>`;
   });
 
-  saatler.sort();
+  document.getElementById("liste").innerHTML = html;
+}
+
+// 📌 Gün Getir
+window.gunGetir = async function(){
+
+  const kampus = document.getElementById("kampus").value;
+  const sinif = document.getElementById("sinif").value;
+  const gun = document.getElementById("gun").value;
+
+  const q = query(collection(db,"dersler"),
+    where("kampus","==",kampus),
+    where("sinif","==",sinif),
+    where("gun","==",gun)
+  );
+
+  const snap = await getDocs(q);
+
+  let html = `<h3>${gun}</h3>`;
+
+  snap.forEach(doc=>{
+    const d = doc.data();
+    html += `<div class="card">${d.saat} → ${d.ders}</div>`;
+  });
+
+  document.getElementById("liste").innerHTML = html;
+}
+
+// 📌 OTOMATİK PROGRAM
+const dersDagilimi = {
+  "1":[
+    {ad:"Matematik",saat:5},
+    {ad:"Türkçe",saat:5},
+    {ad:"Fen",saat:3}
+  ],
+  "2":[
+    {ad:"Matematik",saat:4},
+    {ad:"İngilizce",saat:3},
+    {ad:"Hayat Bilgisi",saat:3}
+  ]
+};
+
+window.otomatikProgram = async function(){
+
+  const kampus = document.getElementById("kampus").value;
+  const sinif = document.getElementById("sinif").value;
 
   const gunler = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma"];
+  const saatler = ["09:00","10:00","11:00","12:00","13:00"];
 
-  let html = "<table border='1' style='width:100%;text-align:center'>";
+  let dersler=[];
 
-  html += "<tr><th>Saat</th>";
-  gunler.forEach(g => html += `<th>${g}</th>`);
-  html += "</tr>";
-
-  saatler.forEach(saat => {
-    html += "<tr>";
-    html += `<td>${saat}</td>`;
-
-    gunler.forEach(g => {
-      html += `<td>${program[saat][g] || "-"}</td>`;
-    });
-
-    html += "</tr>";
-  });
-
-  html += "</table>";
-
-  liste.innerHTML = html;
-}
-
-// 🔥 GÜN FİLTRE
-window.gunGetir = async function() {
-
-  const kampusSec = kampus.value;
-  const sinifSec = sinif.value;
-  const gunSec = document.getElementById("gun").value;
-
-  const querySnapshot = await getDocs(collection(db, "dersler"));
-
-  let dersler = [];
-
-  querySnapshot.forEach(doc => {
-    const d = doc.data();
-
-    if (
-      d.kampus === kampusSec &&
-      d.sinif === sinifSec &&
-      d.gun === gunSec
-    ) {
-      dersler.push(d);
+  dersDagilimi[sinif].forEach(d=>{
+    for(let i=0;i<d.saat;i++){
+      dersler.push(d.ad);
     }
   });
 
-  dersler.sort((a,b) => a.saat.localeCompare(b.saat));
+  dersler.sort(()=>Math.random()-0.5);
 
-  let html = `<h3>${gunSec}</h3>`;
+  let i=0;
 
-  dersler.forEach(d => {
-    html += `
-    <div class="kart">
-      <b>${d.saat}</b> - ${d.ders} <br>
-      <small>${d.ogretmen}</small>
-    </div>
-    `;
-  });
+  for(let g of gunler){
+    for(let s of saatler){
 
-  liste.innerHTML = html;
+      if(i>=dersler.length) break;
+
+      await addDoc(collection(db,"dersler"),{
+        kampus,
+        sinif,
+        gun:g,
+        saat:s,
+        ders:dersler[i]
+      });
+
+      i++;
+    }
+  }
+
+  alert("🤖 Otomatik program oluşturuldu!");
 }
 
 </script>
