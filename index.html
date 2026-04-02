@@ -6,57 +6,90 @@
 
 <title>Ders Programı</title>
 
+<link rel="manifest" href="manifest.json">
+
 <style>
+
 body {
   margin:0;
-  font-family: Arial;
-  background: linear-gradient(135deg,#0f172a,#1e293b);
+  font-family: 'Segoe UI', sans-serif;
+  background: radial-gradient(circle at top, #1e293b, #020617);
   color:white;
 }
 
+/* ANA KART */
 .container {
-  max-width:500px;
-  margin:40px auto;
-  background:#1e293b;
-  padding:25px;
-  border-radius:20px;
+  max-width:480px;
+  margin:60px auto;
+  padding:30px;
+  border-radius:25px;
+  background: rgba(30,41,59,0.8);
+  backdrop-filter: blur(20px);
+  box-shadow:
+    0 0 40px rgba(0,0,0,0.6),
+    0 0 20px rgba(250,204,21,0.1);
 }
 
+/* BAŞLIK */
 h1 {
   text-align:center;
   color:#facc15;
+  font-size:28px;
+  margin-bottom:25px;
 }
 
-select,input,button {
+/* INPUT */
+select, input {
   width:100%;
-  padding:12px;
-  margin-top:10px;
-  border-radius:10px;
-  border:none;
-}
-
-select,input {
-  background:#0f172a;
+  padding:14px;
+  margin-top:8px;
+  margin-bottom:18px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.05);
+  background:#020617;
   color:white;
 }
 
+/* BUTON */
 button {
-  background:#facc15;
-  font-weight:bold;
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  font-weight:600;
+  margin-top:10px;
+  cursor:pointer;
 }
 
-.card {
-  background:#0f172a;
-  margin-top:10px;
-  padding:10px;
-  border-radius:10px;
+/* ANA BUTON */
+.main-btn {
+  background: linear-gradient(45deg,#facc15,#f59e0b);
+  color:black;
 }
+
+/* DİĞER */
+.secondary {
+  background:#020617;
+  color:#facc15;
+  border:1px solid rgba(250,204,21,0.3);
+}
+
+/* CARD */
+.card {
+  background:#020617;
+  padding:15px;
+  border-radius:12px;
+  margin-top:10px;
+  border-left:4px solid #facc15;
+}
+
 </style>
 </head>
 
 <body>
 
 <div class="container">
+
 <h1>Ders Programı</h1>
 
 <select id="kampus">
@@ -82,19 +115,20 @@ button {
 <input type="text" id="ders" placeholder="Ders">
 <input type="text" id="ogretmen" placeholder="Öğretmen">
 
-<button onclick="dersKaydet()">Dersi Kaydet</button>
-<button onclick="haftalikGetir()">Haftalık Program</button>
-<button onclick="gunGetir()">Seçilen Gün</button>
-<button onclick="otomatikProgram()">🤖 Otomatik Program</button>
-<button onclick="programSil()">🗑 Programı Temizle</button>
+<button class="main-btn" onclick="dersKaydet()">Dersi Kaydet</button>
+
+<button class="secondary" onclick="haftalikGetir()">Haftalık Program</button>
+<button class="secondary" onclick="gunGetir()">Seçilen Gün</button>
+<button class="secondary" onclick="programSil()">Programı Temizle</button>
 
 <div id="liste"></div>
+
 </div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBCUrqU0_PrzConRKjlYNoZ7yU38ZPwxfk",
@@ -105,19 +139,19 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 📌 KAYDET (ÖĞRETMEN ÇAKIŞMA DAHİL)
+// 📌 DERS EKLE (ÇAKIŞMA KONTROL)
 window.dersKaydet = async function(){
 
-  const kampus = kampusEl.value;
-  const sinif = sinifEl.value;
-  const gun = gunEl.value;
-  const saat = saatEl.value;
-  const ders = dersEl.value;
-  const ogretmen = ogretmenEl.value;
+  const kampus = document.getElementById("kampus").value;
+  const sinif = document.getElementById("sinif").value;
+  const gun = document.getElementById("gun").value;
+  const saat = document.getElementById("saat").value;
+  const ders = document.getElementById("ders").value;
+  const ogretmen = document.getElementById("ogretmen").value;
 
   const snap = await getDocs(collection(db,"dersler"));
 
-  let cakisma = false;
+  let cakisma=false;
 
   snap.forEach(doc=>{
     const d = doc.data();
@@ -150,7 +184,7 @@ window.dersKaydet = async function(){
   alert("Kaydedildi");
 }
 
-// 📌 HAFTALIK
+// 📊 HAFTALIK
 window.haftalikGetir = async function(){
 
   const snap = await getDocs(collection(db,"dersler"));
@@ -159,19 +193,22 @@ window.haftalikGetir = async function(){
 
   snap.forEach(doc=>{
     const d = doc.data();
-    html+=`<div class="card">
-    ${d.gun} ${d.saat} → ${d.ders}<br>
-    👨‍🏫 ${d.ogretmen}
+
+    html+=`
+    <div class="card">
+      <b>${d.gun}</b> ${d.saat}<br>
+      📘 ${d.ders}<br>
+      👨‍🏫 ${d.ogretmen}
     </div>`;
   });
 
-  liste.innerHTML=html;
+  document.getElementById("liste").innerHTML=html;
 }
 
-// 📌 GÜN
+// 📅 GÜN
 window.gunGetir = async function(){
 
-  const gun = gunEl.value;
+  const gun = document.getElementById("gun").value;
   const snap = await getDocs(collection(db,"dersler"));
 
   let html="";
@@ -180,22 +217,18 @@ window.gunGetir = async function(){
     const d = doc.data();
 
     if(d.gun===gun){
-      html+=`<div class="card">
-      ${d.saat} → ${d.ders}<br>
-      👨‍🏫 ${d.ogretmen}
+      html+=`
+      <div class="card">
+        ${d.saat} → ${d.ders}<br>
+        👨‍🏫 ${d.ogretmen}
       </div>`;
     }
   });
 
-  liste.innerHTML=html;
+  document.getElementById("liste").innerHTML=html;
 }
 
-// 🤖 OTOMATİK
-window.otomatikProgram = async function(){
-  alert("Bu kısım geliştirmede 😎");
-}
-
-// 🗑 SİL
+// 🗑 TEMİZLE
 window.programSil = async function(){
 
   const snap = await getDocs(collection(db,"dersler"));
@@ -207,6 +240,13 @@ window.programSil = async function(){
   alert("Silindi");
 }
 
+</script>
+
+<!-- PWA -->
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js");
+}
 </script>
 
 </body>
