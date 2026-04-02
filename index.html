@@ -6,38 +6,81 @@
 <title>Ders Programı</title>
 
 <style>
+:root {
+  --bg: #f4f6fb;
+  --card: #ffffff;
+  --text: #333;
+  --primary: #3498db;
+}
+
+.dark {
+  --bg: #121212;
+  --card: #1e1e1e;
+  --text: #fff;
+  --primary: #f1c40f;
+}
+
 body {
   font-family: Arial;
-  background: linear-gradient(to right, #74ebd5, #9face6);
+  background: var(--bg);
   margin: 0;
+  color: var(--text);
+  transition: 0.3s;
 }
 
 .container {
-  max-width: 400px;
+  max-width: 420px;
   margin: 30px auto;
-  background: white;
   padding: 20px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+h2 {
+  margin: 0;
+}
+
+.toggle {
+  background: var(--primary);
+  border: none;
+  padding: 8px 12px;
+  border-radius: 10px;
+  color: white;
+}
+
+.selectBox {
+  background: var(--card);
+  padding: 15px;
   border-radius: 15px;
+  margin-top: 15px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 
 select {
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   margin-top: 10px;
-  border-radius: 8px;
+  border-radius: 10px;
+  border: none;
+  background: #eee;
 }
 
 .kart {
-  background: #f2f2f2;
-  padding: 10px;
-  margin-top: 10px;
-  border-radius: 10px;
+  background: var(--card);
+  padding: 15px;
+  margin-top: 12px;
+  border-radius: 15px;
+  border-left: 5px solid var(--primary);
 }
 
 .bos {
   text-align: center;
   margin-top: 20px;
-  color: gray;
+  opacity: 0.6;
 }
 </style>
 </head>
@@ -45,62 +88,67 @@ select {
 <body>
 
 <div class="container">
-<h2>Ders Programı</h2>
 
+<div class="header">
+  <h2>Ders Programı</h2>
+  <button class="toggle" onclick="temaDegistir()">🌙</button>
+</div>
+
+<div class="selectBox">
 <select id="kampus">
-  <option value="">Kampüs Seç</option>
+  <option>Kampüs Seç</option>
 </select>
 
 <select id="sinif">
-  <option value="">Sınıf Seç</option>
+  <option>Sınıf Seç</option>
 </select>
+</div>
 
 <div id="program">
-  <div class="bos">Henüz veri yüklenmedi</div>
+  <div class="bos">Program seçmek için yukarıdan seçim yap</div>
 </div>
 
 </div>
 
 <script>
 
-// 🔥 BOŞ VERİ (SONRA DOLDURACAĞIZ)
-let programlar = [];
+// 🔥 ÖRNEK DATA (SONRA JSON BAĞLAYACAĞIZ)
+let programlar = [
+  {kampus:"Bahçelievler", sinif:"9A", gun:"Pazartesi", saat:"09:00", ders:"Matematik"},
+  {kampus:"Bahçelievler", sinif:"9A", gun:"10:00", saat:"10:00", ders:"Türkçe"},
+  {kampus:"Başakşehir", sinif:"10A", gun:"Salı", saat:"11:00", ders:"Fizik"}
+];
 
-// Kampüsleri doldur
+// Kampüs doldur
 function kampusleriDoldur(){
-  const kampusler = [...new Set(programlar.map(p => p.kampus))];
-  kampus.innerHTML = "<option value=''>Kampüs Seç</option>";
+  const kList = [...new Set(programlar.map(p=>p.kampus))];
+  kampus.innerHTML = "<option>Kampüs Seç</option>";
 
-  kampusler.forEach(k=>{
+  kList.forEach(k=>{
     kampus.innerHTML += `<option>${k}</option>`;
   });
 }
 
-// Sınıfları doldur
+// Sınıf doldur
 function siniflariDoldur(){
-  const k = kampus.value;
+  const sList = [...new Set(programlar
+    .filter(p=>p.kampus===kampus.value)
+    .map(p=>p.sinif))];
 
-  const siniflar = [...new Set(programlar
-    .filter(p => p.kampus === k)
-    .map(p => p.sinif))];
+  sinif.innerHTML = "<option>Sınıf Seç</option>";
 
-  sinif.innerHTML = "<option value=''>Sınıf Seç</option>";
-
-  siniflar.forEach(s=>{
+  sList.forEach(s=>{
     sinif.innerHTML += `<option>${s}</option>`;
   });
 }
 
-// Program göster
+// Göster
 function goster(){
-  const k = kampus.value;
-  const s = sinif.value;
-
   const liste = document.getElementById("program");
   liste.innerHTML = "";
 
   const filtre = programlar.filter(p =>
-    p.kampus === k && p.sinif === s
+    p.kampus===kampus.value && p.sinif===sinif.value
   );
 
   if(filtre.length === 0){
@@ -118,13 +166,21 @@ function goster(){
   });
 }
 
-// EVENTLER
-kampus.onchange = () => {
+// Tema değiştir
+function temaDegistir(){
+  document.body.classList.toggle("dark");
+}
+
+// Events
+kampus.onchange = ()=>{
   siniflariDoldur();
   goster();
 };
 
 sinif.onchange = goster;
+
+// Başlat
+kampusleriDoldur();
 
 </script>
 
