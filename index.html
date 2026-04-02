@@ -6,212 +6,208 @@
 <title>Ders Programı</title>
 
 <style>
-
-* {
-  box-sizing: border-box;
-}
-
 body {
-  margin: 0;
-  font-family: 'Segoe UI', sans-serif;
-  background: linear-gradient(135deg, #0f172a, #1e293b);
-  color: white;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #000000, #1a1a1a);
+    color: white;
 }
 
-/* ÜST BAR */
-.header {
-  text-align: center;
-  padding: 20px;
-  font-size: 22px;
-  font-weight: bold;
-  color: #facc15;
-}
-
-/* ANA KART */
 .container {
-  max-width: 700px;
-  margin: 20px auto;
-  padding: 25px;
-  border-radius: 20px;
-  background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(15px);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-  animation: fadeIn 0.6s ease;
+    max-width: 500px;
+    margin: 20px auto;
+    background: #111;
+    padding: 20px;
+    border-radius: 20px;
 }
 
-/* INPUTLAR */
-select {
-  width: 100%;
-  padding: 12px;
-  margin-top: 12px;
-  border-radius: 10px;
-  border: none;
-  background: rgba(255,255,255,0.1);
-  color: white;
-  transition: 0.3s;
+.logo {
+    width: 100px;
+    display: block;
+    margin: 0 auto 10px;
 }
 
-select:hover {
-  background: rgba(255,255,255,0.2);
+h1 {
+    text-align: center;
+    color: #ffd700;
 }
 
-/* TABLO */
-.tableWrap {
-  overflow-x: auto;
-  margin-top: 20px;
+select, input {
+    width: 100%;
+    padding: 12px;
+    margin: 6px 0;
+    border-radius: 10px;
+    border: none;
+    background: #222;
+    color: white;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
+button {
+    width: 100%;
+    padding: 12px;
+    background: #ffd700;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    margin-top: 10px;
 }
 
-th {
-  background: #facc15;
-  color: black;
-  padding: 12px;
-  font-weight: bold;
-}
-
-td {
-  padding: 12px;
-  text-align: center;
-  background: rgba(255,255,255,0.05);
-  transition: 0.3s;
-}
-
-td:hover {
-  background: rgba(250,204,21,0.2);
-}
-
-tr:nth-child(even) td {
-  background: rgba(255,255,255,0.03);
-}
-
-/* ANİMASYON */
-@keyframes fadeIn {
-  from {opacity: 0; transform: translateY(10px);}
-  to {opacity: 1; transform: translateY(0);}
-}
-
-/* MOBİL */
-@media(max-width:600px){
-  .container {
-    margin: 10px;
+.card {
+    background: #222;
     padding: 15px;
-  }
-
-  th, td {
-    font-size: 12px;
-    padding: 8px;
-  }
+    border-radius: 15px;
+    margin-top: 15px;
 }
 
+.card b {
+    color: #ffd700;
+}
+
+.actions {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+}
+
+.edit {
+    background: orange;
+    flex: 1;
+}
+
+.delete {
+    background: red;
+    color: white;
+    flex: 1;
+}
 </style>
 </head>
 
 <body>
 
-<div class="header">
-📚 Ders Programı
-</div>
-
 <div class="container">
 
-<select id="kampus"></select>
-<select id="sinif"></select>
+<img src="logo.png" class="logo">
+<h1>Ders Programı</h1>
 
-<div class="tableWrap">
-<table id="tablo"></table>
-</div>
+<select id="kampus">
+<option>Adıyaman</option>
+<option>Bahçelievler</option>
+<option>Başakşehir</option>
+<option>Bahçeşehir</option>
+<option>Beykent</option>
+<option>Bursa</option>
+<option>Çamlıca</option>
+<option>Çekmeköy</option>
+<option>Çayyolu</option>
+<option>Florya</option>
+<option>Gaziosmanpaşa</option>
+<option>Gebze</option>
+<option>Kağıthane</option>
+<option>Kartal</option>
+<option>Haliç</option>
+<option>Halkalı</option>
+<option>Mavişehir</option>
+<option>Kocasinan</option>
+<option>Maltepe</option>
+<option>Mersin</option>
+<option>Pendik</option>
+<option>Pendik Lise</option>
+<option>Sancaktepe</option>
+<option>Şanlıurfa</option>
+</select>
+
+<select id="gun">
+<option>Pazartesi</option>
+<option>Salı</option>
+<option>Çarşamba</option>
+<option>Perşembe</option>
+<option>Cuma</option>
+</select>
+
+<input type="time" id="saat">
+<input type="text" id="ders" placeholder="Ders">
+<input type="text" id="ogretmen" placeholder="Öğretmen">
+<input type="text" id="sinif" placeholder="Sınıf">
+<input type="text" id="kampusText" placeholder="Kampüs (opsiyonel)">
+
+<button onclick="ekle()">Ekle / Güncelle</button>
+
+<div id="liste"></div>
 
 </div>
 
 <script>
 
-let programlar = [];
+let dersler = JSON.parse(localStorage.getItem("dersler")) || [];
+let editIndex = -1;
 
-const gunler = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma"];
-const saatler = ["09:00","10:00","11:00","12:00","13:00","14:00","15:00"];
-
-// İlk harf büyüt
-function buyut(text){
-  return text.charAt(0).toUpperCase() + text.slice(1);
+function kaydet() {
+    localStorage.setItem("dersler", JSON.stringify(dersler));
 }
 
-// JSON çek
-fetch("data.json")
-  .then(res => res.json())
-  .then(data => {
-    programlar = data;
-    kampusleriDoldur();
-  });
+function goster() {
+    let liste = document.getElementById("liste");
+    liste.innerHTML = "";
 
-// Kampüs doldur
-function kampusleriDoldur(){
-  const list = [...new Set(programlar.map(p=>p.kampus))];
-  kampus.innerHTML = "<option>Kampüs Seç</option>";
+    dersler.forEach((d, i) => {
+        liste.innerHTML += `
+        <div class="card">
+            <b>Gün:</b> ${d.gun}<br>
+            <b>Saat:</b> ${d.saat}<br>
+            <b>Ders:</b> ${d.ders}<br>
+            <b>Öğretmen:</b> ${d.ogretmen}<br>
+            <b>Sınıf:</b> ${d.sinif}<br>
+            <b>Kampüs:</b> ${d.kampus}
 
-  list.forEach(k=>{
-    kampus.innerHTML += `<option value="${k}">${buyut(k)}</option>`;
-  });
-}
-
-// Sınıf doldur
-function siniflariDoldur(){
-  const list = [...new Set(programlar
-    .filter(p=>p.kampus===kampus.value)
-    .map(p=>p.sinif))];
-
-  sinif.innerHTML = "<option>Sınıf Seç</option>";
-
-  list.forEach(s=>{
-    sinif.innerHTML += `<option value="${s}">${s}. Sınıf</option>`;
-  });
-}
-
-// TABLO
-function tabloOlustur(){
-
-  const tablo = document.getElementById("tablo");
-  tablo.innerHTML = "";
-
-  let html = "<tr><th>Saat</th>";
-
-  gunler.forEach(g=>{
-    html += `<th>${g}</th>`;
-  });
-
-  html += "</tr>";
-
-  saatler.forEach(saat=>{
-    html += `<tr><td>${saat}</td>`;
-
-    gunler.forEach(gun=>{
-
-      const ders = programlar.find(p =>
-        p.kampus===kampus.value &&
-        p.sinif===sinif.value &&
-        p.gun===gun &&
-        p.saat===saat
-      );
-
-      html += `<td>${ders ? ders.ders : "-"}</td>`;
+            <div class="actions">
+                <button class="edit" onclick="duzenle(${i})">Edit</button>
+                <button class="delete" onclick="sil(${i})">Sil</button>
+            </div>
+        </div>`;
     });
-
-    html += "</tr>";
-  });
-
-  tablo.innerHTML = html;
 }
 
-// Events
-kampus.onchange = ()=>{
-  siniflariDoldur();
-  tabloOlustur();
-};
+function ekle() {
+    let veri = {
+        kampus: document.getElementById("kampus").value,
+        gun: document.getElementById("gun").value,
+        saat: document.getElementById("saat").value,
+        ders: document.getElementById("ders").value,
+        ogretmen: document.getElementById("ogretmen").value,
+        sinif: document.getElementById("sinif").value
+    };
 
-sinif.onchange = tabloOlustur;
+    if (editIndex == -1) {
+        dersler.push(veri);
+    } else {
+        dersler[editIndex] = veri;
+        editIndex = -1;
+    }
+
+    kaydet();
+    goster();
+}
+
+function sil(i) {
+    dersler.splice(i, 1);
+    kaydet();
+    goster();
+}
+
+function duzenle(i) {
+    let d = dersler[i];
+
+    document.getElementById("kampus").value = d.kampus;
+    document.getElementById("gun").value = d.gun;
+    document.getElementById("saat").value = d.saat;
+    document.getElementById("ders").value = d.ders;
+    document.getElementById("ogretmen").value = d.ogretmen;
+    document.getElementById("sinif").value = d.sinif;
+
+    editIndex = i;
+}
+
+goster();
 
 </script>
 
