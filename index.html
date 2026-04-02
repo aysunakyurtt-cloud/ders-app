@@ -14,7 +14,7 @@ body {
 }
 
 .container {
-  max-width:900px;
+  max-width:950px;
   margin:40px auto;
   padding:25px;
   border-radius:20px;
@@ -26,6 +26,7 @@ h1 {
   color:#facc15;
 }
 
+/* INPUT */
 input,select,button {
   width:100%;
   padding:12px;
@@ -40,8 +41,6 @@ button {
   cursor:pointer;
 }
 
-.hidden { display:none; }
-
 /* TABLO */
 table {
   width:100%;
@@ -51,7 +50,7 @@ table {
 
 th, td {
   border:1px solid #334155;
-  padding:10px;
+  padding:12px;
   text-align:center;
 }
 
@@ -61,8 +60,18 @@ th {
 }
 
 td {
-  background:#0f172a;
+  font-weight:bold;
+  color:white;
 }
+
+/* RENKLER */
+.matematik { background:#2563eb; }
+.turkce { background:#dc2626; }
+.fen { background:#16a34a; }
+.ingilizce { background:#9333ea; }
+.diger { background:#475569; }
+
+.hidden { display:none; }
 
 </style>
 </head>
@@ -103,10 +112,11 @@ td {
 </select>
 
 <input type="time" id="saat">
-<input id="ders" placeholder="Ders">
+<input id="ders" placeholder="Ders (Matematik, Türkçe...)">
 <input id="ogretmen" placeholder="Öğretmen">
 
 <button onclick="dersKaydet()">Dersi Kaydet</button>
+
 </div>
 
 <button onclick="tabloGetir()">📊 Haftalık Tablo</button>
@@ -179,7 +189,20 @@ window.dersKaydet = async function(){
   alert("Kaydedildi");
 }
 
-// 📊 TABLO OLUŞTUR
+// 🎨 RENK BELİRLE
+function renkGetir(ders){
+
+  ders = ders.toLowerCase();
+
+  if(ders.includes("mat")) return "matematik";
+  if(ders.includes("türk")) return "turkce";
+  if(ders.includes("fen")) return "fen";
+  if(ders.includes("ing")) return "ingilizce";
+
+  return "diger";
+}
+
+// 📊 TABLO
 window.tabloGetir = async function(){
 
   const snap = await getDocs(collection(db,"dersler"));
@@ -193,7 +216,10 @@ window.tabloGetir = async function(){
     const d = doc.data();
 
     if(!veri[d.saat]) veri[d.saat] = {};
-    veri[d.saat][d.gun] = d.ders;
+    veri[d.saat][d.gun] = {
+      ders:d.ders,
+      ogretmen:d.ogretmen
+    };
   });
 
   let html = "<table><tr><th>Saat</th>";
@@ -205,7 +231,19 @@ window.tabloGetir = async function(){
     html+="<tr><td>"+s+"</td>";
 
     gunler.forEach(g=>{
-      html+="<td>"+(veri[s]?.[g] || "-")+"</td>";
+      const veriCell = veri[s]?.[g];
+
+      if(veriCell){
+        const renk = renkGetir(veriCell.ders);
+
+        html+=`
+        <td class="${renk}">
+        ${veriCell.ders}<br>
+        <small>${veriCell.ogretmen}</small>
+        </td>`;
+      } else {
+        html+="<td>-</td>";
+      }
     });
 
     html+="</tr>";
