@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ders Programı</title>
 
+<!-- ICON -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
 <style>
 :root {
   --bg: #f4f6fb;
@@ -34,30 +37,35 @@ body {
   padding: 20px;
 }
 
+/* HEADER */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-h2 {
-  margin: 0;
-}
-
 .toggle {
   background: var(--primary);
   border: none;
-  padding: 8px 12px;
-  border-radius: 10px;
+  padding: 10px;
+  border-radius: 12px;
   color: white;
+  cursor: pointer;
+  transition: 0.3s;
 }
 
+.toggle:hover {
+  transform: scale(1.1);
+}
+
+/* SELECT BOX */
 .selectBox {
   background: var(--card);
   padding: 15px;
   border-radius: 15px;
   margin-top: 15px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  animation: fadeIn 0.5s ease;
 }
 
 select {
@@ -69,18 +77,48 @@ select {
   background: #eee;
 }
 
+/* CARD */
 .kart {
   background: var(--card);
   padding: 15px;
   margin-top: 12px;
   border-radius: 15px;
   border-left: 5px solid var(--primary);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  animation: slideUp 0.4s ease;
+  transition: 0.3s;
+}
+
+.kart:hover {
+  transform: translateY(-5px) scale(1.02);
+}
+
+.kart i {
+  margin-right: 8px;
+  color: var(--primary);
 }
 
 .bos {
   text-align: center;
   margin-top: 20px;
   opacity: 0.6;
+}
+
+/* ANIMATIONS */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {opacity:0;}
+  to {opacity:1;}
 }
 </style>
 </head>
@@ -90,32 +128,27 @@ select {
 <div class="container">
 
 <div class="header">
-  <h2>Ders Programı</h2>
+  <h2><i class="fa-solid fa-calendar-days"></i> Ders Programı</h2>
   <button class="toggle" onclick="temaDegistir()">🌙</button>
 </div>
 
 <div class="selectBox">
-<select id="kampus">
-  <option>Kampüs Seç</option>
-</select>
-
-<select id="sinif">
-  <option>Sınıf Seç</option>
-</select>
+<select id="kampus"></select>
+<select id="sinif"></select>
 </div>
 
 <div id="program">
-  <div class="bos">Program seçmek için yukarıdan seçim yap</div>
+  <div class="bos">Seçim yap 👆</div>
 </div>
 
 </div>
 
 <script>
 
-// 🔥 ÖRNEK DATA (SONRA JSON BAĞLAYACAĞIZ)
+// DEMO DATA
 let programlar = [
   {kampus:"Bahçelievler", sinif:"9A", gun:"Pazartesi", saat:"09:00", ders:"Matematik"},
-  {kampus:"Bahçelievler", sinif:"9A", gun:"10:00", saat:"10:00", ders:"Türkçe"},
+  {kampus:"Bahçelievler", sinif:"9A", gun:"Pazartesi", saat:"10:00", ders:"Türkçe"},
   {kampus:"Başakşehir", sinif:"10A", gun:"Salı", saat:"11:00", ders:"Fizik"}
 ];
 
@@ -159,14 +192,14 @@ function goster(){
   filtre.forEach(p=>{
     liste.innerHTML += `
       <div class="kart">
-        ${p.gun} - ${p.saat}<br>
-        <b>${p.ders}</b>
+        <div><i class="fa-solid fa-clock"></i>${p.gun} - ${p.saat}</div>
+        <div><i class="fa-solid fa-book"></i><b>${p.ders}</b></div>
       </div>
     `;
   });
 }
 
-// Tema değiştir
+// Tema
 function temaDegistir(){
   document.body.classList.toggle("dark");
 }
@@ -179,7 +212,6 @@ kampus.onchange = ()=>{
 
 sinif.onchange = goster;
 
-// Başlat
 kampusleriDoldur();
 
 </script>
