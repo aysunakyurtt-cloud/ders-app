@@ -8,8 +8,8 @@
 <style>
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #000000, #1a1a1a);
+    font-family: Arial;
+    background: linear-gradient(135deg, #000, #1a1a1a);
     color: white;
 }
 
@@ -21,63 +21,25 @@ body {
     border-radius: 20px;
 }
 
-.logo {
-    width: 100px;
-    display: block;
-    margin: 0 auto 10px;
-}
-
 h1 {
     text-align: center;
     color: #ffd700;
 }
 
-select, input {
+select {
     width: 100%;
     padding: 12px;
     margin: 6px 0;
     border-radius: 10px;
-    border: none;
     background: #222;
     color: white;
-}
-
-button {
-    width: 100%;
-    padding: 12px;
-    background: #ffd700;
-    border: none;
-    border-radius: 10px;
-    font-weight: bold;
-    margin-top: 10px;
 }
 
 .card {
     background: #222;
     padding: 15px;
     border-radius: 15px;
-    margin-top: 15px;
-}
-
-.card b {
-    color: #ffd700;
-}
-
-.actions {
     margin-top: 10px;
-    display: flex;
-    gap: 10px;
-}
-
-.edit {
-    background: orange;
-    flex: 1;
-}
-
-.delete {
-    background: red;
-    color: white;
-    flex: 1;
 }
 </style>
 </head>
@@ -86,51 +48,14 @@ button {
 
 <div class="container">
 
-<img src="logo.png" class="logo">
 <h1>Ders Programı</h1>
 
-<select id="kampus">
-<option>Adıyaman</option>
-<option>Bahçelievler</option>
-<option>Başakşehir</option>
-<option>Bahçeşehir</option>
-<option>Beykent</option>
-<option>Bursa</option>
-<option>Çamlıca</option>
-<option>Çekmeköy</option>
-<option>Çayyolu</option>
-<option>Florya</option>
-<option>Gaziosmanpaşa</option>
-<option>Gebze</option>
-<option>Kağıthane</option>
-<option>Kartal</option>
+<select id="kampus" onchange="programGetir()">
+<option value="">Kampüs Seç</option>
 <option>Haliç</option>
-<option>Halkalı</option>
-<option>Mavişehir</option>
-<option>Kocasinan</option>
-<option>Maltepe</option>
-<option>Mersin</option>
-<option>Pendik</option>
-<option>Pendik Lise</option>
-<option>Sancaktepe</option>
-<option>Şanlıurfa</option>
+<option>Bahçelievler</option>
+<option>Florya</option>
 </select>
-
-<select id="gun">
-<option>Pazartesi</option>
-<option>Salı</option>
-<option>Çarşamba</option>
-<option>Perşembe</option>
-<option>Cuma</option>
-</select>
-
-<input type="time" id="saat">
-<input type="text" id="ders" placeholder="Ders">
-<input type="text" id="ogretmen" placeholder="Öğretmen">
-<input type="text" id="sinif" placeholder="Sınıf">
-<input type="text" id="kampusText" placeholder="Kampüs (opsiyonel)">
-
-<button onclick="ekle()">Ekle / Güncelle</button>
 
 <div id="liste"></div>
 
@@ -138,76 +63,43 @@ button {
 
 <script>
 
-let dersler = JSON.parse(localStorage.getItem("dersler")) || [];
-let editIndex = -1;
+// 🔥 HAZIR PROGRAMLAR
+const programlar = {
+    "Haliç": [
+        {gun:"Pazartesi", saat:"09:00", ders:"Matematik", ogretmen:"Ahmet", sinif:"5"},
+        {gun:"Salı", saat:"10:00", ders:"Türkçe", ogretmen:"Ayşe", sinif:"5"}
+    ],
+    "Bahçelievler": [
+        {gun:"Pazartesi", saat:"11:00", ders:"Fizik", ogretmen:"Mehmet", sinif:"6"}
+    ],
+    "Florya": [
+        {gun:"Çarşamba", saat:"13:00", ders:"Kimya", ogretmen:"Zeynep", sinif:"7"}
+    ]
+};
 
-function kaydet() {
-    localStorage.setItem("dersler", JSON.stringify(dersler));
-}
-
-function goster() {
+// 🎯 KAMPÜS SEÇİNCE ÇALIŞIR
+function programGetir() {
+    let kampus = document.getElementById("kampus").value;
     let liste = document.getElementById("liste");
+
     liste.innerHTML = "";
 
-    dersler.forEach((d, i) => {
+    if (!programlar[kampus]) {
+        liste.innerHTML = "Program bulunamadı";
+        return;
+    }
+
+    programlar[kampus].forEach(d => {
         liste.innerHTML += `
         <div class="card">
-            <b>Gün:</b> ${d.gun}<br>
-            <b>Saat:</b> ${d.saat}<br>
-            <b>Ders:</b> ${d.ders}<br>
-            <b>Öğretmen:</b> ${d.ogretmen}<br>
-            <b>Sınıf:</b> ${d.sinif}<br>
-            <b>Kampüs:</b> ${d.kampus}
-
-            <div class="actions">
-                <button class="edit" onclick="duzenle(${i})">Edit</button>
-                <button class="delete" onclick="sil(${i})">Sil</button>
-            </div>
+            <b>${d.gun}</b><br>
+            Saat: ${d.saat}<br>
+            Ders: ${d.ders}<br>
+            Öğretmen: ${d.ogretmen}<br>
+            Sınıf: ${d.sinif}
         </div>`;
     });
 }
-
-function ekle() {
-    let veri = {
-        kampus: document.getElementById("kampus").value,
-        gun: document.getElementById("gun").value,
-        saat: document.getElementById("saat").value,
-        ders: document.getElementById("ders").value,
-        ogretmen: document.getElementById("ogretmen").value,
-        sinif: document.getElementById("sinif").value
-    };
-
-    if (editIndex == -1) {
-        dersler.push(veri);
-    } else {
-        dersler[editIndex] = veri;
-        editIndex = -1;
-    }
-
-    kaydet();
-    goster();
-}
-
-function sil(i) {
-    dersler.splice(i, 1);
-    kaydet();
-    goster();
-}
-
-function duzenle(i) {
-    let d = dersler[i];
-
-    document.getElementById("kampus").value = d.kampus;
-    document.getElementById("gun").value = d.gun;
-    document.getElementById("saat").value = d.saat;
-    document.getElementById("ders").value = d.ders;
-    document.getElementById("ogretmen").value = d.ogretmen;
-    document.getElementById("sinif").value = d.sinif;
-
-    editIndex = i;
-}
-
-goster();
 
 </script>
 
