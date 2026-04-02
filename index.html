@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ders Programı</title>
 
-<!-- ICON -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
 <style>
@@ -26,18 +25,15 @@
 body {
   font-family: Arial;
   background: var(--bg);
-  margin: 0;
   color: var(--text);
-  transition: 0.3s;
+  margin: 0;
 }
 
 .container {
-  max-width: 420px;
-  margin: 30px auto;
-  padding: 20px;
+  max-width: 95%;
+  margin: 20px auto;
 }
 
-/* HEADER */
 .header {
   display: flex;
   justify-content: space-between;
@@ -48,77 +44,54 @@ body {
   background: var(--primary);
   border: none;
   padding: 10px;
-  border-radius: 12px;
+  border-radius: 10px;
   color: white;
-  cursor: pointer;
-  transition: 0.3s;
 }
 
-.toggle:hover {
-  transform: scale(1.1);
-}
-
-/* SELECT BOX */
 .selectBox {
-  background: var(--card);
-  padding: 15px;
-  border-radius: 15px;
-  margin-top: 15px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-  animation: fadeIn 0.5s ease;
+  margin: 15px 0;
 }
 
 select {
   width: 100%;
-  padding: 12px;
+  padding: 10px;
   margin-top: 10px;
   border-radius: 10px;
-  border: none;
-  background: #eee;
 }
 
-/* CARD */
-.kart {
+/* TABLE */
+table {
+  width: 100%;
+  border-collapse: collapse;
   background: var(--card);
-  padding: 15px;
-  margin-top: 12px;
-  border-radius: 15px;
-  border-left: 5px solid var(--primary);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-  animation: slideUp 0.4s ease;
-  transition: 0.3s;
+  border-radius: 10px;
+  overflow: hidden;
 }
 
-.kart:hover {
-  transform: translateY(-5px) scale(1.02);
-}
-
-.kart i {
-  margin-right: 8px;
-  color: var(--primary);
-}
-
-.bos {
+th, td {
+  border: 1px solid #ddd;
   text-align: center;
-  margin-top: 20px;
-  opacity: 0.6;
+  padding: 10px;
+  font-size: 12px;
 }
 
-/* ANIMATIONS */
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+th {
+  background: var(--primary);
+  color: white;
 }
 
-@keyframes fadeIn {
-  from {opacity:0;}
-  to {opacity:1;}
+td {
+  height: 60px;
+}
+
+.ders {
+  font-weight: bold;
+  font-size: 13px;
+}
+
+/* SCROLL MOBILE */
+.tableWrap {
+  overflow-x: auto;
 }
 </style>
 </head>
@@ -128,7 +101,7 @@ select {
 <div class="container">
 
 <div class="header">
-  <h2><i class="fa-solid fa-calendar-days"></i> Ders Programı</h2>
+  <h2><i class="fa-solid fa-calendar"></i> Ders Programı</h2>
   <button class="toggle" onclick="temaDegistir()">🌙</button>
 </div>
 
@@ -137,66 +110,80 @@ select {
 <select id="sinif"></select>
 </div>
 
-<div id="program">
-  <div class="bos">Seçim yap 👆</div>
+<div class="tableWrap">
+<table id="tablo">
+</table>
 </div>
 
 </div>
 
 <script>
 
-// DEMO DATA
 let programlar = [
   {kampus:"Bahçelievler", sinif:"9A", gun:"Pazartesi", saat:"09:00", ders:"Matematik"},
-  {kampus:"Bahçelievler", sinif:"9A", gun:"Pazartesi", saat:"10:00", ders:"Türkçe"},
-  {kampus:"Başakşehir", sinif:"10A", gun:"Salı", saat:"11:00", ders:"Fizik"}
+  {kampus:"Bahçelievler", sinif:"9A", gun:"Salı", saat:"10:00", ders:"Türkçe"},
+  {kampus:"Bahçelievler", sinif:"9A", gun:"Çarşamba", saat:"11:00", ders:"Fizik"}
 ];
 
-// Kampüs doldur
+const gunler = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma"];
+const saatler = ["09:00","10:00","11:00","12:00","13:00","14:00","15:00"];
+
+// Kampüs
 function kampusleriDoldur(){
-  const kList = [...new Set(programlar.map(p=>p.kampus))];
+  const list = [...new Set(programlar.map(p=>p.kampus))];
   kampus.innerHTML = "<option>Kampüs Seç</option>";
 
-  kList.forEach(k=>{
+  list.forEach(k=>{
     kampus.innerHTML += `<option>${k}</option>`;
   });
 }
 
-// Sınıf doldur
+// Sınıf
 function siniflariDoldur(){
-  const sList = [...new Set(programlar
+  const list = [...new Set(programlar
     .filter(p=>p.kampus===kampus.value)
     .map(p=>p.sinif))];
 
   sinif.innerHTML = "<option>Sınıf Seç</option>";
 
-  sList.forEach(s=>{
+  list.forEach(s=>{
     sinif.innerHTML += `<option>${s}</option>`;
   });
 }
 
-// Göster
-function goster(){
-  const liste = document.getElementById("program");
-  liste.innerHTML = "";
+// TABLO OLUŞTUR
+function tabloOlustur(){
 
-  const filtre = programlar.filter(p =>
-    p.kampus===kampus.value && p.sinif===sinif.value
-  );
+  const tablo = document.getElementById("tablo");
+  tablo.innerHTML = "";
 
-  if(filtre.length === 0){
-    liste.innerHTML = "<div class='bos'>Program bulunamadı</div>";
-    return;
-  }
+  let html = "<tr><th>Saat</th>";
 
-  filtre.forEach(p=>{
-    liste.innerHTML += `
-      <div class="kart">
-        <div><i class="fa-solid fa-clock"></i>${p.gun} - ${p.saat}</div>
-        <div><i class="fa-solid fa-book"></i><b>${p.ders}</b></div>
-      </div>
-    `;
+  gunler.forEach(g=>{
+    html += `<th>${g}</th>`;
   });
+
+  html += "</tr>";
+
+  saatler.forEach(saat=>{
+    html += `<tr><td>${saat}</td>`;
+
+    gunler.forEach(gun=>{
+
+      const ders = programlar.find(p =>
+        p.kampus===kampus.value &&
+        p.sinif===sinif.value &&
+        p.gun===gun &&
+        p.saat===saat
+      );
+
+      html += `<td>${ders ? `<div class="ders">${ders.ders}</div>` : ""}</td>`;
+    });
+
+    html += "</tr>";
+  });
+
+  tablo.innerHTML = html;
 }
 
 // Tema
@@ -207,11 +194,12 @@ function temaDegistir(){
 // Events
 kampus.onchange = ()=>{
   siniflariDoldur();
-  goster();
+  tabloOlustur();
 };
 
-sinif.onchange = goster;
+sinif.onchange = tabloOlustur;
 
+// Başlat
 kampusleriDoldur();
 
 </script>
