@@ -33,6 +33,12 @@ select {
   margin-top: 10px;
   border-radius: 10px;
 }
+
+.bos {
+  text-align: center;
+  margin-top: 20px;
+  color: gray;
+}
 </style>
 </head>
 
@@ -41,51 +47,51 @@ select {
 <div class="container">
 <h2>Ders Programı</h2>
 
-<select id="kampus" onchange="goster()">
-<option value="">Kampüs Seç</option>
-<option>Bahçelievler</option>
-<option>Başakşehir</option>
-<option>Florya</option>
+<select id="kampus">
+  <option value="">Kampüs Seç</option>
 </select>
 
-<select id="sinif" onchange="goster()">
-<option value="">Sınıf Seç</option>
-<option>9A</option>
-<option>9B</option>
-<option>10A</option>
+<select id="sinif">
+  <option value="">Sınıf Seç</option>
 </select>
 
-<div id="program"></div>
+<div id="program">
+  <div class="bos">Henüz veri yüklenmedi</div>
+</div>
+
 </div>
 
 <script>
 
-// 🔥 ÖRNEK VERİTABANI
-const programlar = [
-  {
-    kampus: "Bahçelievler",
-    sinif: "9A",
-    gun: "Pazartesi",
-    saat: "09:00",
-    ders: "Matematik"
-  },
-  {
-    kampus: "Bahçelievler",
-    sinif: "9A",
-    gun: "Pazartesi",
-    saat: "10:00",
-    ders: "Türkçe"
-  },
-  {
-    kampus: "Başakşehir",
-    sinif: "10A",
-    gun: "Salı",
-    saat: "11:00",
-    ders: "Fizik"
-  }
-];
+// 🔥 BOŞ VERİ (SONRA DOLDURACAĞIZ)
+let programlar = [];
 
-// GÖSTER
+// Kampüsleri doldur
+function kampusleriDoldur(){
+  const kampusler = [...new Set(programlar.map(p => p.kampus))];
+  kampus.innerHTML = "<option value=''>Kampüs Seç</option>";
+
+  kampusler.forEach(k=>{
+    kampus.innerHTML += `<option>${k}</option>`;
+  });
+}
+
+// Sınıfları doldur
+function siniflariDoldur(){
+  const k = kampus.value;
+
+  const siniflar = [...new Set(programlar
+    .filter(p => p.kampus === k)
+    .map(p => p.sinif))];
+
+  sinif.innerHTML = "<option value=''>Sınıf Seç</option>";
+
+  siniflar.forEach(s=>{
+    sinif.innerHTML += `<option>${s}</option>`;
+  });
+}
+
+// Program göster
 function goster(){
   const k = kampus.value;
   const s = sinif.value;
@@ -93,12 +99,12 @@ function goster(){
   const liste = document.getElementById("program");
   liste.innerHTML = "";
 
-  const filtre = programlar.filter(p => 
+  const filtre = programlar.filter(p =>
     p.kampus === k && p.sinif === s
   );
 
   if(filtre.length === 0){
-    liste.innerHTML = "<p>Program bulunamadı</p>";
+    liste.innerHTML = "<div class='bos'>Program bulunamadı</div>";
     return;
   }
 
@@ -111,6 +117,14 @@ function goster(){
     `;
   });
 }
+
+// EVENTLER
+kampus.onchange = () => {
+  siniflariDoldur();
+  goster();
+};
+
+sinif.onchange = goster;
 
 </script>
 
