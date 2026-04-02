@@ -7,51 +7,83 @@
 
 <style>
 body {
-  font-family: Arial;
+  font-family: 'Segoe UI', sans-serif;
   margin: 0;
-  background: linear-gradient(135deg,#0f0f0f,#1a1a1a);
+  background: linear-gradient(135deg,#0f172a,#1e293b);
   color: white;
 }
 
 .container {
-  max-width: 600px;
-  margin: 20px auto;
-  background: #1c1c1c;
-  padding: 20px;
+  max-width: 700px;
+  margin: 40px auto;
+  background: rgba(30,41,59,0.8);
+  backdrop-filter: blur(15px);
+  padding: 30px;
   border-radius: 20px;
+  box-shadow: 0 0 40px rgba(255,215,0,0.1);
 }
 
 h1 {
   text-align: center;
   color: #FFD700;
+  margin-bottom: 25px;
 }
 
-input, select, button {
+label {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+input, select {
   width: 100%;
-  padding: 12px;
-  margin: 6px 0;
-  border-radius: 10px;
+  padding: 14px;
+  margin-top: 5px;
+  margin-bottom: 15px;
+  border-radius: 12px;
   border: none;
-  font-size: 16px;
+  background: #0f172a;
+  color: white;
+  font-size: 15px;
+}
+
+input:focus, select:focus {
+  outline: none;
+  box-shadow: 0 0 10px #FFD700;
 }
 
 button {
-  background: #FFD700;
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
   font-weight: bold;
+  font-size: 16px;
   cursor: pointer;
+  margin-top: 10px;
+}
+
+.btn-primary {
+  background: linear-gradient(45deg,#FFD700,#ffae00);
+  color: black;
+}
+
+.btn-secondary {
+  background: #334155;
+  color: white;
 }
 
 .card {
-  background: #2a2a2a;
-  padding: 10px;
+  background: #0f172a;
+  padding: 15px;
+  border-radius: 12px;
   margin-top: 10px;
-  border-radius: 10px;
+  border-left: 5px solid #FFD700;
 }
 
 .day {
-  color: #FFD700;
+  margin-top: 20px;
   font-weight: bold;
-  margin-top: 15px;
+  color: #FFD700;
 }
 </style>
 </head>
@@ -59,8 +91,10 @@ button {
 <body>
 
 <div class="container">
+
 <h1>Ders Programı</h1>
 
+<label>Kampüs</label>
 <select id="kampus">
 <option>Haliç</option>
 <option>Bahçeşehir</option>
@@ -69,6 +103,7 @@ button {
 <option>Florya</option>
 </select>
 
+<label>Sınıf</label>
 <select id="sinif">
 <option>1</option>
 <option>2</option>
@@ -77,6 +112,7 @@ button {
 <option>5</option>
 </select>
 
+<label>Gün</label>
 <select id="gun">
 <option>Pazartesi</option>
 <option>Salı</option>
@@ -85,14 +121,15 @@ button {
 <option>Cuma</option>
 </select>
 
+<label>Saat</label>
 <input type="time" id="saat">
-<input type="text" id="ders" placeholder="Ders">
 
-<button onclick="ekle()">Dersi Kaydet</button>
+<label>Ders</label>
+<input type="text" id="ders" placeholder="Örn: Matematik">
 
-<hr>
+<button class="btn-primary" onclick="ekle()">Dersi Kaydet</button>
 
-<button onclick="getir()">Programı Getir</button>
+<button class="btn-secondary" onclick="getir()">Programı Getir</button>
 
 <div id="liste"></div>
 
@@ -104,7 +141,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getFirestore, collection, addDoc, getDocs } 
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// 🔥 SENİN FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyBCUrqU0_PrzConRKjlYNoZ7yU38ZPwxfk",
   authDomain: "ders-programi-d79e0.firebaseapp.com",
@@ -117,7 +153,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 🔥 DERS EKLE (ÇAKIŞMA KONTROLLÜ)
 window.ekle = async function() {
 
   const kampus = document.getElementById("kampus").value;
@@ -125,7 +160,6 @@ window.ekle = async function() {
   const gun = document.getElementById("gun").value;
   const saat = document.getElementById("saat").value;
   const ders = document.getElementById("ders").value;
-
   const ogretmen = prompt("Öğretmen adı gir:");
 
   const querySnapshot = await getDocs(collection(db, "dersler"));
@@ -136,7 +170,6 @@ window.ekle = async function() {
   querySnapshot.forEach((doc) => {
     const d = doc.data();
 
-    // SINIF ÇAKIŞMA
     if (
       d.kampus === kampus &&
       d.sinif === sinif &&
@@ -146,7 +179,6 @@ window.ekle = async function() {
       sinifCakisma = true;
     }
 
-    // ÖĞRETMEN ÇAKIŞMA
     if (
       d.ogretmen === ogretmen &&
       d.gun === gun &&
@@ -157,28 +189,22 @@ window.ekle = async function() {
   });
 
   if (sinifCakisma) {
-    alert("❌ Bu sınıfın bu saatte dersi var!");
+    alert("❌ Bu sınıfta ders var!");
     return;
   }
 
   if (ogretmenCakisma) {
-    alert("❌ Bu öğretmen aynı saatte başka derste!");
+    alert("❌ Öğretmen dolu!");
     return;
   }
 
   await addDoc(collection(db, "dersler"), {
-    kampus,
-    sinif,
-    gun,
-    saat,
-    ders,
-    ogretmen
+    kampus, sinif, gun, saat, ders, ogretmen
   });
 
-  alert("✅ Ders eklendi!");
+  alert("✅ Kaydedildi");
 }
 
-// 📊 PROGRAM GETİR
 window.getir = async function() {
 
   const liste = document.getElementById("liste");
@@ -190,9 +216,7 @@ window.getir = async function() {
 
   querySnapshot.forEach((doc) => {
     const d = doc.data();
-
     if(!data[d.gun]) data[d.gun] = [];
-
     data[d.gun].push(d);
   });
 
@@ -205,9 +229,9 @@ window.getir = async function() {
     data[gun].forEach(d => {
       liste.innerHTML += `
       <div class="card">
-        ${d.saat} - ${d.ders} (${d.ogretmen}) 
-        <br>
-        Sınıf: ${d.sinif} | Kampüs: ${d.kampus}
+        <b>${d.saat}</b> - ${d.ders} <br>
+        👨‍🏫 ${d.ogretmen} <br>
+        🏫 ${d.kampus} | Sınıf ${d.sinif}
       </div>`;
     });
   }
