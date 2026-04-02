@@ -6,6 +6,7 @@
 <title>Ders Programı</title>
 
 <style>
+
 body {
     margin: 0;
     font-family: Arial;
@@ -19,6 +20,7 @@ body {
     background: #111;
     padding: 20px;
     border-radius: 20px;
+    box-shadow: 0 0 20px rgba(255,215,0,0.2);
 }
 
 h1 {
@@ -34,11 +36,19 @@ select, input, button {
     border: none;
     background: #222;
     color: white;
+    font-size: 15px;
 }
 
 button {
     background: #ffd700;
     color: black;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.dayTitle {
+    margin-top: 15px;
+    color: #ffd700;
     font-weight: bold;
 }
 
@@ -47,14 +57,9 @@ button {
     padding: 12px;
     border-radius: 12px;
     margin-top: 8px;
-    border-left: 4px solid #ffd700;
+    border-left: 5px solid #ffd700;
 }
 
-.dayTitle {
-    margin-top: 15px;
-    color: #ffd700;
-    font-weight: bold;
-}
 </style>
 </head>
 
@@ -64,8 +69,15 @@ button {
 
 <h1>Ders Programı</h1>
 
-<select id="kampus"></select>
-<select id="sinif"></select>
+<select id="kampus">
+<option>Bahçelievler</option>
+<option>Başakşehir</option>
+</select>
+
+<select id="sinif">
+<option>5A</option>
+<option>6A</option>
+</select>
 
 <input type="date" id="tarih">
 
@@ -77,46 +89,38 @@ button {
 
 <script>
 
+// 🔥 DERS VERİLERİ
 const programlar = [
 
-{kampus:"Bahçelievler", sinif:"5A", gun:"Pazartesi", saat:"09:00", ders:"Matematik"},
+{kampus:"Bahçelievler", sinif:"5A", gun:"Pazartesi", saat:"09:00", ders:"Türkçe"},
+{kampus:"Bahçelievler", sinif:"5A", gun:"Pazartesi", saat:"10:00", ders:"Fen"},
+{kampus:"Bahçelievler", sinif:"5A", gun:"Pazartesi", saat:"11:00", ders:"Matematik"},
+{kampus:"Bahçelievler", sinif:"5A", gun:"Pazartesi", saat:"12:00", ders:"İngilizce"},
+
+{kampus:"Bahçelievler", sinif:"5A", gun:"Salı", saat:"09:00", ders:"Matematik"},
 {kampus:"Bahçelievler", sinif:"5A", gun:"Salı", saat:"10:00", ders:"Türkçe"},
-{kampus:"Bahçelievler", sinif:"5A", gun:"Çarşamba", saat:"11:00", ders:"Fen"},
-{kampus:"Bahçelievler", sinif:"5A", gun:"Perşembe", saat:"12:00", ders:"İngilizce"},
-{kampus:"Bahçelievler", sinif:"5A", gun:"Cuma", saat:"13:00", ders:"Sosyal"},
+{kampus:"Bahçelievler", sinif:"5A", gun:"Salı", saat:"11:00", ders:"Fen"},
+
+{kampus:"Bahçelievler", sinif:"5A", gun:"Çarşamba", saat:"09:00", ders:"Fen"},
+{kampus:"Bahçelievler", sinif:"5A", gun:"Çarşamba", saat:"10:00", ders:"Matematik"},
+
+{kampus:"Bahçelievler", sinif:"5A", gun:"Perşembe", saat:"09:00", ders:"İngilizce"},
+{kampus:"Bahçelievler", sinif:"5A", gun:"Perşembe", saat:"10:00", ders:"Türkçe"},
+
+{kampus:"Bahçelievler", sinif:"5A", gun:"Cuma", saat:"09:00", ders:"Sosyal"},
+{kampus:"Bahçelievler", sinif:"5A", gun:"Cuma", saat:"10:00", ders:"Matematik"},
 
 {kampus:"Başakşehir", sinif:"6A", gun:"Pazartesi", saat:"09:00", ders:"Fizik"},
-{kampus:"Başakşehir", sinif:"6A", gun:"Salı", saat:"10:00", ders:"Kimya"},
-{kampus:"Başakşehir", sinif:"6A", gun:"Çarşamba", saat:"11:00", ders:"Biyoloji"},
-{kampus:"Başakşehir", sinif:"6A", gun:"Perşembe", saat:"12:00", ders:"Matematik"},
-{kampus:"Başakşehir", sinif:"6A", gun:"Cuma", saat:"13:00", ders:"Türkçe"}
+{kampus:"Başakşehir", sinif:"6A", gun:"Salı", saat:"10:00", ders:"Kimya"}
 
 ];
 
 const gunler = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma"];
 
-// Kampüsleri doldur
-function kampusleriDoldur(){
-    const list = [...new Set(programlar.map(p=>p.kampus))];
-    kampus.innerHTML = "<option>Kampüs Seç</option>";
-    list.forEach(k=>{
-        kampus.innerHTML += `<option>${k}</option>`;
-    });
-}
+// 📅 SAYFA AÇILINCA HAFTALIK GÖSTER
+window.onload = haftalikGoster;
 
-// Sınıfları doldur
-function siniflariDoldur(){
-    const list = [...new Set(programlar
-        .filter(p=>p.kampus===kampus.value)
-        .map(p=>p.sinif))];
-
-    sinif.innerHTML = "<option>Sınıf Seç</option>";
-    list.forEach(s=>{
-        sinif.innerHTML += `<option>${s}</option>`;
-    });
-}
-
-// 📅 TÜM HAFTA GÖSTER
+// 📅 HAFTALIK PROGRAM
 function haftalikGoster(){
 
     let liste = document.getElementById("liste");
@@ -124,13 +128,16 @@ function haftalikGoster(){
 
     gunler.forEach(gun=>{
 
-        const dersler = programlar.filter(p =>
+        let dersler = programlar.filter(p =>
             p.kampus===kampus.value &&
             p.sinif===sinif.value &&
             p.gun===gun
         );
 
+        dersler.sort((a,b)=> a.saat.localeCompare(b.saat));
+
         if(dersler.length > 0){
+
             liste.innerHTML += `<div class="dayTitle">${gun}</div>`;
 
             dersler.forEach(d=>{
@@ -149,7 +156,7 @@ function gunBul(tarih){
     return g[new Date(tarih).getDay()];
 }
 
-// 🎯 FİLTRE
+// 🎯 TARİH FİLTRE
 function filtrele(){
 
     let tarih = document.getElementById("tarih").value;
@@ -158,13 +165,16 @@ function filtrele(){
     let gun = gunBul(tarih);
 
     let liste = document.getElementById("liste");
-    liste.innerHTML = `<div class="dayTitle">${gun}</div>`;
 
-    const dersler = programlar.filter(p =>
+    let dersler = programlar.filter(p =>
         p.kampus===kampus.value &&
         p.sinif===sinif.value &&
         p.gun===gun
     );
+
+    dersler.sort((a,b)=> a.saat.localeCompare(b.saat));
+
+    liste.innerHTML = `<div class="dayTitle">${gun}</div>`;
 
     if(dersler.length === 0){
         liste.innerHTML += "Ders yok";
@@ -179,16 +189,9 @@ function filtrele(){
     });
 }
 
-// EVENTS
-kampus.onchange = ()=>{
-    siniflariDoldur();
-    liste.innerHTML="";
-};
-
+// 🔄 SEÇİM DEĞİŞİNCE YENİDEN YÜKLE
+kampus.onchange = haftalikGoster;
 sinif.onchange = haftalikGoster;
-
-// BAŞLAT
-kampusleriDoldur();
 
 </script>
 
