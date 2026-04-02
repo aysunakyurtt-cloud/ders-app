@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Ders Programı Pro</title>
+<title>Ders Programı PRO</title>
 
 <style>
 body{
@@ -12,54 +12,12 @@ body{
   color:white;
 }
 
-/* HEADER */
 h1{
   text-align:center;
   color:#facc15;
   margin:20px;
 }
 
-/* GRID */
-.program{
-  display:grid;
-  grid-template-columns: 80px repeat(6, 1fr);
-  gap:10px;
-  padding:20px;
-}
-
-/* SAATLER */
-.saat{
-  text-align:center;
-  color:#94a3b8;
-}
-
-/* GÜN */
-.gun{
-  text-align:right;
-  padding-right:10px;
-  color:#facc15;
-}
-
-/* DERS BLOK */
-.ders{
-  background:#facc15;
-  color:black;
-  padding:10px;
-  border-radius:10px;
-  font-weight:bold;
-  font-size:13px;
-  box-shadow:0 0 10px rgba(250,204,21,0.4);
-}
-
-/* GRID CELL */
-.hucre{
-  min-height:60px;
-  background:#0f172a;
-  border-radius:8px;
-  position:relative;
-}
-
-/* FORM */
 .form{
   max-width:600px;
   margin:20px auto;
@@ -79,6 +37,40 @@ input,select,button{
 button{
   background:#facc15;
   font-weight:bold;
+  cursor:pointer;
+}
+
+.program{
+  display:grid;
+  grid-template-columns: 80px repeat(6, 1fr);
+  gap:10px;
+  padding:20px;
+}
+
+.saat{
+  text-align:center;
+  color:#94a3b8;
+}
+
+.gun{
+  text-align:right;
+  padding-right:10px;
+  color:#facc15;
+}
+
+.hucre{
+  min-height:70px;
+  background:#0f172a;
+  border-radius:8px;
+}
+
+.ders{
+  background:#facc15;
+  color:black;
+  padding:10px;
+  border-radius:10px;
+  font-weight:bold;
+  cursor:grab;
 }
 </style>
 
@@ -101,26 +93,62 @@ button{
 <input id="ogretmen" placeholder="Öğretmen">
 
 <button onclick="ekle()">Dersi Kaydet</button>
-<button onclick="ciz()">Programı Göster</button>
 </div>
 
 <div id="program"></div>
 
-<script>
+<!-- FIREBASE -->
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// SENİN CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyBCUrqU0_PrzConRKjlYNoZ7yU38ZPwxfk",
+  authDomain: "ders-programi-d79e0.firebaseapp.com",
+  projectId: "ders-programi-d79e0",
+  storageBucket: "ders-programi-d79e0.firebasestorage.app",
+  messagingSenderId: "265838203871",
+  appId: "1:265838203871:web:6f1ea40d87f90edeeaea6a"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 let programData = [];
+let dragged = null;
 
-function ekle(){
-  programData.push({
+// EKLE
+window.ekle = async function(){
+
+  await addDoc(collection(db,"dersler"),{
     gun: gun.value,
     saat: saat.value,
     ders: ders.value,
     ogretmen: ogretmen.value
   });
 
-  alert("Eklendi");
+  alert("Kaydedildi 🔥");
+  veriGetir();
 }
 
+// VERİ ÇEK
+async function veriGetir(){
+  programData = [];
+
+  const querySnapshot = await getDocs(collection(db,"dersler"));
+  querySnapshot.forEach((docSnap) => {
+    programData.push({
+      id: docSnap.id,
+      ...docSnap.data()
+    });
+  });
+
+  ciz();
+}
+
+// ÇİZ
 function ciz(){
 
   const gunler=["Pazartesi","Salı","Çarşamba","Perşembe","Cuma"];
@@ -128,37 +156,76 @@ function ciz(){
 
   let html = `<div class="program">`;
 
-  // ÜST SAATLER
   html += `<div></div>`;
   saatler.forEach(s=>{
     html += `<div class="saat">${s}</div>`;
   });
 
-  // GÜNLER
   gunler.forEach(gun=>{
     html += `<div class="gun">${gun}</div>`;
 
     saatler.forEach(saat=>{
+      html += `<div class="hucre" 
+        ondragover="allowDrop(event)" 
+        ondrop="drop(event,'${gun}','${saat}')">
+      `;
+
       let ders = programData.find(p => p.gun===gun && p.saat===saat);
 
       if(ders){
         html += `
-        <div class="hucre">
-          <div class="ders">
+          <div class="ders"
+            draggable="true"
+            ondragstart="drag(event)"
+            data-id="${ders.id}">
             ${ders.ders}<br>
             <small>${ders.ogretmen}</small>
-          </div>
-        </div>`;
-      }else{
-        html += `<div class="hucre"></div>`;
+          </div>`;
       }
+
+      html += `</div>`;
     });
   });
 
   html += `</div>`;
-
   document.getElementById("program").innerHTML = html;
 }
+
+// DRAG
+window.drag = function(e){
+  dragged = e.target.dataset.id;
+}
+
+// DROP
+window.allowDrop = function(e){
+  e.preventDefault();
+}
+
+window.drop = async function(e,newGun,newSaat){
+  e.preventDefault();
+
+  let ders = programData.find(p => p.id===dragged);
+
+  // çakışma kontrol
+  let dolu = programData.find(p =>
+    p.gun===newGun && p.saat===newSaat
+  );
+
+  if(dolu){
+    alert("Bu saat dolu!");
+    return;
+  }
+
+  await updateDoc(doc(db,"dersler",ders.id),{
+    gun:newGun,
+    saat:newSaat
+  });
+
+  veriGetir();
+}
+
+// SAYFA AÇILINCA
+veriGetir();
 
 </script>
 
