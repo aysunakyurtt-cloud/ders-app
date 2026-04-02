@@ -20,7 +20,7 @@ body {
   border-radius: 15px;
 }
 
-input, select, button {
+input, button {
   width: 100%;
   margin-top: 10px;
   padding: 10px;
@@ -41,8 +41,8 @@ button {
   border-radius: 10px;
 }
 
-.editBtn { background: orange; color:white; padding:5px; border:none; border-radius:6px; }
-.deleteBtn { background: red; color:white; padding:5px; border:none; border-radius:6px; }
+.editBtn { background: orange; color:white; }
+.deleteBtn { background: red; color:white; }
 
 </style>
 </head>
@@ -58,7 +58,7 @@ button {
 <input id="kampus" placeholder="Kampüs">
 
 <button onclick="ekle()">Ders Ekle</button>
-<button onclick="otomatikOlustur()">🤖 Otomatik Program Yap</button>
+<button onclick="otomatikOlustur()">🤖 Akıllı Program Yap</button>
 
 <div id="liste"></div>
 </div>
@@ -71,12 +71,12 @@ let editIndex = null;
 const gunler = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma"];
 const saatler = ["09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00"];
 
-// KAYDET
+// Kaydet
 function kaydet(){
   localStorage.setItem("dersler", JSON.stringify(dersler));
 }
 
-// LİSTE
+// Liste
 function listeyiGoster(){
   const liste = document.getElementById("liste");
   liste.innerHTML = "";
@@ -145,7 +145,7 @@ function temizle(){
   kampus.value="";
 }
 
-// 🔥 ÇAKIŞMA KONTROL
+// ÇAKIŞMA
 function uygunMu(gun,saat,ders){
   return !dersler.some(d =>
     d.gun === gun &&
@@ -157,35 +157,65 @@ function uygunMu(gun,saat,ders){
   );
 }
 
-// 🤖 OTOMATİK PROGRAM
+// 🔥 KAMPÜS GRUPLA
+function kampusGrupla(){
+  const grup = {};
+
+  dersler.forEach(d=>{
+    if(!grup[d.kampus]){
+      grup[d.kampus] = [];
+    }
+    grup[d.kampus].push(d);
+  });
+
+  return grup;
+}
+
+// 🤖 AKILLI PROGRAM
 function otomatikOlustur(){
 
-  dersler.forEach(d => {
-    d.gun = "";
-    d.saat = "";
+  // sıfırla
+  dersler.forEach(d=>{
+    d.gun="";
+    d.saat="";
   });
 
-  dersler.forEach(ders => {
+  const gruplar = kampusGrupla();
+  let gunIndex = 0;
 
-    for(let g of gunler){
-      for(let s of saatler){
+  // her kampüs ayrı günlere dağıtılır
+  for(let kampus in gruplar){
 
-        if(uygunMu(g,s,ders)){
-          ders.gun = g;
-          ders.saat = s;
-          return;
+    let dersListesi = gruplar[kampus];
+    let gun = gunler[gunIndex % gunler.length];
+    let saatIndex = 0;
+
+    dersListesi.forEach(ders=>{
+
+      while(saatIndex < saatler.length){
+
+        let saat = saatler[saatIndex];
+
+        if(uygunMu(gun,saat,ders)){
+          ders.gun = gun;
+          ders.saat = saat;
+          saatIndex++;
+          break;
         }
 
+        saatIndex++;
       }
-    }
 
-  });
+    });
+
+    gunIndex++;
+  }
 
   kaydet();
   listeyiGoster();
 }
 
-// BAŞLAT
+// başlat
 listeyiGoster();
 
 </script>
