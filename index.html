@@ -20,75 +20,42 @@ body {
     background: #111;
     padding: 20px;
     border-radius: 20px;
-    box-shadow: 0 0 30px rgba(255,215,0,0.2);
 }
 
-h1 {
-    text-align: center;
-    color: #ffd700;
-}
+h1 { text-align:center; color:#ffd700; }
 
-select, input, button {
-    width: 100%;
-    padding: 12px;
-    margin: 6px 0;
-    border-radius: 10px;
-    border: none;
-    background: #222;
-    color: white;
-    font-size: 15px;
+input, select, button {
+    width:100%;
+    padding:10px;
+    margin:5px 0;
+    border-radius:10px;
+    border:none;
 }
 
 button {
-    background: #ffd700;
-    color: black;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.dayTitle {
-    margin-top: 20px;
-    color: #ffd700;
-    font-weight: bold;
-    font-size: 18px;
+    background:#ffd700;
+    color:black;
+    font-weight:bold;
 }
 
 .card {
-    background: #1a1a1a;
-    padding: 15px;
-    border-radius: 15px;
-    margin-top: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: 0.3s;
+    background:#222;
+    margin-top:10px;
+    padding:10px;
+    border-radius:10px;
 }
 
-.card:hover {
-    transform: scale(1.03);
-    background: #222;
+.adminBtn {
+    background:red;
+    color:white;
+    margin-top:5px;
 }
 
-.saat {
-    font-weight: bold;
-    font-size: 16px;
+.dayTitle {
+    color:#ffd700;
+    margin-top:15px;
+    font-weight:bold;
 }
-
-.ders {
-    font-size: 15px;
-}
-
-.ogretmen {
-    font-size: 13px;
-    color: #aaa;
-}
-
-/* 🎨 Ders renkleri */
-.matematik { border-left: 5px solid #3498db; }
-.turkce { border-left: 5px solid #e74c3c; }
-.fen { border-left: 5px solid #2ecc71; }
-.ingilizce { border-left: 5px solid #9b59b6; }
-.sosyal { border-left: 5px solid #f39c12; }
 
 </style>
 </head>
@@ -99,18 +66,32 @@ button {
 
 <h1>Ders Programı</h1>
 
-<select id="kampus">
-<option>Bahçelievler</option>
-<option>Başakşehir</option>
+<!-- MOD SEÇİM -->
+<select id="mod" onchange="modDegistir()">
+<option value="ogrenci">Öğrenci</option>
+<option value="admin">Admin</option>
 </select>
 
-<select id="sinif">
-<option>5A</option>
-<option>6A</option>
-</select>
+<!-- ADMIN PANEL -->
+<div id="adminPanel" style="display:none;">
 
+<h3>Ders Ekle</h3>
+
+<input id="kampus" placeholder="Kampüs">
+<input id="sinif" placeholder="Sınıf">
+<input id="gun" placeholder="Gün (Pazartesi)">
+<input id="saat" placeholder="Saat (09:00)">
+<input id="ders" placeholder="Ders">
+<input id="ogretmen" placeholder="Öğretmen">
+
+<button onclick="ekle()">Ekle</button>
+
+</div>
+
+<hr>
+
+<!-- FİLTRE -->
 <input type="date" id="tarih">
-
 <button onclick="filtrele()">Tarihe Göre Filtrele</button>
 
 <div id="liste"></div>
@@ -119,77 +100,73 @@ button {
 
 <script>
 
-// 🎯 DERSLER (ARTIK ÖĞRETMEN VAR)
-const programlar = [
-
-{kampus:"Bahçelievler", sinif:"5A", gun:"Pazartesi", saat:"09:00", ders:"Matematik", ogretmen:"Ahmet"},
-{kampus:"Bahçelievler", sinif:"5A", gun:"Pazartesi", saat:"10:00", ders:"Türkçe", ogretmen:"Ayşe"},
-{kampus:"Bahçelievler", sinif:"5A", gun:"Pazartesi", saat:"11:00", ders:"Fen", ogretmen:"Mehmet"},
-
-{kampus:"Bahçelievler", sinif:"5A", gun:"Salı", saat:"09:00", ders:"İngilizce", ogretmen:"Zeynep"},
-{kampus:"Bahçelievler", sinif:"5A", gun:"Salı", saat:"10:00", ders:"Sosyal", ogretmen:"Ali"},
-
-{kampus:"Başakşehir", sinif:"6A", gun:"Pazartesi", saat:"09:00", ders:"Matematik", ogretmen:"Hoca1"}
-
-];
+let programlar = JSON.parse(localStorage.getItem("dersler")) || [];
 
 const gunler = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma"];
 
-// 🎨 RENK CLASS BELİRLE
-function dersClass(ders){
-    ders = ders.toLowerCase();
-
-    if(ders.includes("matematik")) return "matematik";
-    if(ders.includes("türkçe")) return "turkce";
-    if(ders.includes("fen")) return "fen";
-    if(ders.includes("ingilizce")) return "ingilizce";
-    if(ders.includes("sosyal")) return "sosyal";
-
-    return "";
+// MOD DEĞİŞ
+function modDegistir(){
+    let mod = document.getElementById("mod").value;
+    document.getElementById("adminPanel").style.display =
+        mod === "admin" ? "block" : "none";
 }
 
-// 📅 HAFTALIK
-window.onload = haftalikGoster;
+// EKLE
+function ekle(){
 
+    let yeni = {
+        kampus: kampus.value,
+        sinif: sinif.value,
+        gun: gun.value,
+        saat: saat.value,
+        ders: ders.value,
+        ogretmen: ogretmen.value
+    };
+
+    programlar.push(yeni);
+    localStorage.setItem("dersler", JSON.stringify(programlar));
+
+    alert("Eklendi!");
+    haftalikGoster();
+}
+
+// SİL
+function sil(index){
+    programlar.splice(index,1);
+    localStorage.setItem("dersler", JSON.stringify(programlar));
+    haftalikGoster();
+}
+
+// HAFTALIK
 function haftalikGoster(){
 
     liste.innerHTML = "";
 
     gunler.forEach(gun=>{
 
-        let dersler = programlar.filter(p =>
-            p.kampus===kampus.value &&
-            p.sinif===sinif.value &&
-            p.gun===gun
-        );
-
-        dersler.sort((a,b)=> a.saat.localeCompare(b.saat));
+        let dersler = programlar.filter(p => p.gun === gun);
 
         if(dersler.length > 0){
 
             liste.innerHTML += `<div class="dayTitle">${gun}</div>`;
 
-            dersler.forEach(d=>{
+            dersler.forEach((d,i)=>{
                 liste.innerHTML += `
-                <div class="card ${dersClass(d.ders)}">
-                    <div>
-                        <div class="saat">${d.saat}</div>
-                        <div class="ders">${d.ders}</div>
-                        <div class="ogretmen">${d.ogretmen}</div>
-                    </div>
+                <div class="card">
+                    ${d.saat} - ${d.ders} (${d.ogretmen})
+                    <button class="adminBtn" onclick="sil(${i})">Sil</button>
                 </div>`;
             });
         }
     });
 }
 
-// 📅 TARİH → GÜN
-function gunBul(tarih){
-    const g = ["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"];
-    return g[new Date(tarih).getDay()];
+// TARİH → GÜN
+function gunBul(t){
+    return ["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"][new Date(t).getDay()];
 }
 
-// 🎯 FİLTRE
+// FİLTRE
 function filtrele(){
 
     let tarih = document.getElementById("tarih").value;
@@ -197,36 +174,20 @@ function filtrele(){
 
     let gun = gunBul(tarih);
 
-    let dersler = programlar.filter(p =>
-        p.kampus===kampus.value &&
-        p.sinif===sinif.value &&
-        p.gun===gun
-    );
-
-    dersler.sort((a,b)=> a.saat.localeCompare(b.saat));
-
     liste.innerHTML = `<div class="dayTitle">${gun}</div>`;
 
-    if(dersler.length === 0){
-        liste.innerHTML += "Ders yok";
-        return;
-    }
+    let dersler = programlar.filter(p => p.gun === gun);
 
-    dersler.forEach(d=>{
+    dersler.forEach((d,i)=>{
         liste.innerHTML += `
-        <div class="card ${dersClass(d.ders)}">
-            <div>
-                <div class="saat">${d.saat}</div>
-                <div class="ders">${d.ders}</div>
-                <div class="ogretmen">${d.ogretmen}</div>
-            </div>
+        <div class="card">
+            ${d.saat} - ${d.ders} (${d.ogretmen})
+            <button class="adminBtn" onclick="sil(${i})">Sil</button>
         </div>`;
     });
 }
 
-// 🔄 DEĞİŞİM
-kampus.onchange = haftalikGoster;
-sinif.onchange = haftalikGoster;
+window.onload = haftalikGoster;
 
 </script>
 
