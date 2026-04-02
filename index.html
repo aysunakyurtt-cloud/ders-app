@@ -8,8 +8,8 @@
 <style>
 body {
   font-family: Arial;
-  margin: 0;
   background: linear-gradient(to right, #74ebd5, #9face6);
+  margin: 0;
 }
 
 .container {
@@ -20,18 +20,11 @@ body {
   border-radius: 15px;
 }
 
-input, select, button {
+select {
   width: 100%;
-  margin-top: 10px;
   padding: 10px;
+  margin-top: 10px;
   border-radius: 8px;
-  border: 1px solid #ccc;
-}
-
-button {
-  background: #3498db;
-  color: white;
-  font-weight: bold;
 }
 
 .kart {
@@ -40,9 +33,6 @@ button {
   margin-top: 10px;
   border-radius: 10px;
 }
-
-.editBtn { background: orange; color:white; }
-.deleteBtn { background: red; color:white; }
 </style>
 </head>
 
@@ -51,199 +41,76 @@ button {
 <div class="container">
 <h2>Ders Programı</h2>
 
-<input id="ders" placeholder="Ders">
-<input id="ogretmen" placeholder="Öğretmen">
-<input id="sinif" placeholder="Sınıf">
-
-<select id="kampus">
+<select id="kampus" onchange="goster()">
 <option value="">Kampüs Seç</option>
-<option>Adıyaman</option>
 <option>Bahçelievler</option>
 <option>Başakşehir</option>
-<option>Bahçeşehir</option>
-<option>Beykent</option>
-<option>Bursa</option>
-<option>Çamlıca</option>
-<option>Çekmeköy</option>
-<option>Çayyolu</option>
 <option>Florya</option>
-<option>Gaziosmanpaşa</option>
-<option>Gebze</option>
-<option>Kağıthane</option>
-<option>Kartal</option>
-<option>Haliç</option>
-<option>Halkalı</option>
-<option>Mavişehir</option>
-<option>Kocasinan</option>
-<option>Maltepe</option>
-<option>Mersin</option>
-<option>Pendik</option>
-<option>Pendik Lise</option>
-<option>Sancaktepe</option>
-<option>Şanlıurfa</option>
 </select>
 
-<button onclick="ekle()">Ders Ekle</button>
-<button onclick="otomatikOlustur()">🤖 Akıllı Program Yap</button>
+<select id="sinif" onchange="goster()">
+<option value="">Sınıf Seç</option>
+<option>9A</option>
+<option>9B</option>
+<option>10A</option>
+</select>
 
-<div id="liste"></div>
+<div id="program"></div>
 </div>
 
 <script>
 
-let dersler = JSON.parse(localStorage.getItem("dersler")) || [];
-let editIndex = null;
+// 🔥 ÖRNEK VERİTABANI
+const programlar = [
+  {
+    kampus: "Bahçelievler",
+    sinif: "9A",
+    gun: "Pazartesi",
+    saat: "09:00",
+    ders: "Matematik"
+  },
+  {
+    kampus: "Bahçelievler",
+    sinif: "9A",
+    gun: "Pazartesi",
+    saat: "10:00",
+    ders: "Türkçe"
+  },
+  {
+    kampus: "Başakşehir",
+    sinif: "10A",
+    gun: "Salı",
+    saat: "11:00",
+    ders: "Fizik"
+  }
+];
 
-const gunler = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma"];
-const saatler = ["09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00"];
+// GÖSTER
+function goster(){
+  const k = kampus.value;
+  const s = sinif.value;
 
-function kaydet(){
-  localStorage.setItem("dersler", JSON.stringify(dersler));
-}
-
-function listeyiGoster(){
-  const liste = document.getElementById("liste");
+  const liste = document.getElementById("program");
   liste.innerHTML = "";
 
-  dersler.forEach((d,i)=>{
-    liste.innerHTML += `
-    <div class="kart">
-      <b>${d.ders}</b><br>
-      ${d.gun || "-"} | ${d.saat || "-"}<br>
-      👨‍🏫 ${d.ogretmen} | 🏫 ${d.sinif} | 📍 ${d.kampus}<br><br>
+  const filtre = programlar.filter(p => 
+    p.kampus === k && p.sinif === s
+  );
 
-      <button class="editBtn" onclick="duzenle(${i})">Edit</button>
-      <button class="deleteBtn" onclick="sil(${i})">Sil</button>
-    </div>
-    `;
-  });
-}
-
-function ekle(){
-
-  if(!kampus.value){
-    alert("Kampüs seçmelisin!");
+  if(filtre.length === 0){
+    liste.innerHTML = "<p>Program bulunamadı</p>";
     return;
   }
 
-  const veri = {
-    ders: ders.value,
-    ogretmen: ogretmen.value,
-    sinif: sinif.value,
-    kampus: kampus.value,
-    gun: "",
-    saat: ""
-  };
-
-  if(editIndex === null){
-    dersler.push(veri);
-  } else {
-    dersler[editIndex] = veri;
-    editIndex = null;
-  }
-
-  kaydet();
-  listeyiGoster();
-  temizle();
-}
-
-function sil(i){
-  dersler.splice(i,1);
-  kaydet();
-  listeyiGoster();
-}
-
-function duzenle(i){
-  const d = dersler[i];
-
-  ders.value = d.ders;
-  ogretmen.value = d.ogretmen;
-  sinif.value = d.sinif;
-  kampus.value = d.kampus;
-
-  editIndex = i;
-}
-
-function temizle(){
-  ders.value="";
-  ogretmen.value="";
-  sinif.value="";
-  kampus.value="";
-}
-
-// ÇAKIŞMA
-function uygunMu(gun,saat,ders){
-  return !dersler.some(d =>
-    d.gun === gun &&
-    d.saat === saat &&
-    (
-      d.ogretmen === ders.ogretmen ||
-      d.sinif === ders.sinif
-    )
-  );
-}
-
-// 🤖 KAMPÜS + ÖĞRETMEN AKILLI PROGRAM
-function otomatikOlustur(){
-
-  dersler.forEach(d=>{
-    d.gun="";
-    d.saat="";
+  filtre.forEach(p=>{
+    liste.innerHTML += `
+      <div class="kart">
+        ${p.gun} - ${p.saat}<br>
+        <b>${p.ders}</b>
+      </div>
+    `;
   });
-
-  let kampusMap = {};
-  let ogretmenMap = {};
-
-  dersler.forEach(d=>{
-    if(!kampusMap[d.kampus]){
-      kampusMap[d.kampus] = [];
-    }
-    kampusMap[d.kampus].push(d);
-  });
-
-  let gunIndex = 0;
-
-  for(let kampus in kampusMap){
-
-    let dersListesi = kampusMap[kampus];
-    let gun = gunler[gunIndex % gunler.length];
-    let saatIndex = 0;
-
-    dersListesi.forEach(ders=>{
-
-      let tercihGunler = ogretmenMap[ders.ogretmen] || [gun];
-
-      for(let g of tercihGunler){
-        for(let s of saatler){
-
-          if(uygunMu(g,s,ders)){
-            ders.gun = g;
-            ders.saat = s;
-
-            if(!ogretmenMap[ders.ogretmen]){
-              ogretmenMap[ders.ogretmen] = [];
-            }
-
-            if(!ogretmenMap[ders.ogretmen].includes(g)){
-              ogretmenMap[ders.ogretmen].push(g);
-            }
-
-            return;
-          }
-
-        }
-      }
-
-    });
-
-    gunIndex++;
-  }
-
-  kaydet();
-  listeyiGoster();
 }
-
-listeyiGoster();
 
 </script>
 
