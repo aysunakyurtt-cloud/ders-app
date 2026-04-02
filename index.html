@@ -3,11 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Ders Programı</title>
 
 <style>
-
 body {
   margin:0;
   font-family: 'Segoe UI', sans-serif;
@@ -15,15 +13,12 @@ body {
   color:white;
 }
 
-/* KUTU */
 .container {
-  max-width:480px;
-  margin:60px auto;
-  padding:30px;
-  border-radius:25px;
+  max-width:900px;
+  margin:40px auto;
+  padding:25px;
+  border-radius:20px;
   background: rgba(30,41,59,0.9);
-  backdrop-filter: blur(20px);
-  box-shadow:0 0 40px rgba(0,0,0,0.6);
 }
 
 h1 {
@@ -31,49 +26,42 @@ h1 {
   color:#facc15;
 }
 
-/* INPUT */
-input, select {
+input,select,button {
   width:100%;
-  padding:14px;
+  padding:12px;
   margin-top:10px;
-  border-radius:12px;
+  border-radius:10px;
   border:none;
-  background:#020617;
-  color:white;
 }
 
-/* BUTON */
 button {
-  width:100%;
-  padding:14px;
-  margin-top:10px;
-  border-radius:12px;
-  border:none;
+  background:#facc15;
   font-weight:bold;
   cursor:pointer;
 }
 
-.main {
-  background:#facc15;
-  color:black;
+.hidden { display:none; }
+
+/* TABLO */
+table {
+  width:100%;
+  margin-top:20px;
+  border-collapse:collapse;
 }
 
-.sec {
+th, td {
+  border:1px solid #334155;
+  padding:10px;
+  text-align:center;
+}
+
+th {
   background:#020617;
   color:#facc15;
-  border:1px solid #facc15;
 }
 
-.hidden {
-  display:none;
-}
-
-.card {
-  background:#020617;
-  padding:12px;
-  margin-top:10px;
-  border-radius:10px;
-  border-left:4px solid #facc15;
+td {
+  background:#0f172a;
 }
 
 </style>
@@ -89,7 +77,7 @@ button {
 <div id="loginBox">
 <input id="user" placeholder="Kullanıcı adı">
 <input id="pass" type="password" placeholder="Şifre">
-<button class="main" onclick="giris()">Giriş Yap</button>
+<button onclick="giris()">Giriş Yap</button>
 </div>
 
 <!-- PANEL -->
@@ -118,25 +106,19 @@ button {
 <input id="ders" placeholder="Ders">
 <input id="ogretmen" placeholder="Öğretmen">
 
-<button class="main" onclick="dersKaydet()">Dersi Kaydet</button>
-<button class="sec" onclick="programSil()">Programı Temizle</button>
-
+<button onclick="dersKaydet()">Dersi Kaydet</button>
 </div>
 
-<hr>
+<button onclick="tabloGetir()">📊 Haftalık Tablo</button>
 
-<!-- HERKES GÖREBİLİR -->
-<button class="sec" onclick="haftalik()">Haftalık Program</button>
-<button class="sec" onclick="gunluk()">Seçilen Gün</button>
-
-<div id="liste"></div>
+<div id="tablo"></div>
 
 </div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBCUrqU0_PrzConRKjlYNoZ7yU38ZPwxfk",
@@ -147,30 +129,25 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 🔐 LOGIN
+// LOGIN
 window.giris = function(){
-
-  const u = document.getElementById("user").value;
-  const p = document.getElementById("pass").value;
-
-  if(u==="admin" && p==="1234"){
-    document.getElementById("loginBox").style.display="none";
-    document.getElementById("panel").classList.remove("hidden");
-    alert("Giriş başarılı");
-  } else {
-    alert("Hatalı giriş");
-  }
+  if(user.value==="admin" && pass.value==="1234"){
+    loginBox.style.display="none";
+    panel.classList.remove("hidden");
+  } else alert("Hatalı giriş");
 }
 
-// 📌 DERS EKLE
+// KAYDET
 window.dersKaydet = async function(){
 
-  const kampus = kampusEl.value;
-  const sinif = sinifEl.value;
-  const gun = gunEl.value;
-  const saat = saatEl.value;
-  const ders = dersEl.value;
-  const ogretmen = ogretmenEl.value;
+  const data = {
+    kampus: kampus.value,
+    sinif: sinif.value,
+    gun: gun.value,
+    saat: saat.value,
+    ders: ders.value,
+    ogretmen: ogretmen.value
+  };
 
   const snap = await getDocs(collection(db,"dersler"));
 
@@ -180,81 +157,63 @@ window.dersKaydet = async function(){
     const d = doc.data();
 
     if(
-      d.kampus===kampus &&
-      d.sinif===sinif &&
-      d.gun===gun &&
-      d.saat===saat
+      d.kampus===data.kampus &&
+      d.sinif===data.sinif &&
+      d.gun===data.gun &&
+      d.saat===data.saat
     ) cakisma=true;
 
     if(
-      d.ogretmen===ogretmen &&
-      d.gun===gun &&
-      d.saat===saat
+      d.ogretmen===data.ogretmen &&
+      d.gun===data.gun &&
+      d.saat===data.saat
     ) cakisma=true;
   });
 
   if(cakisma){
-    alert("❌ Çakışma var!");
+    alert("Çakışma var!");
     return;
   }
 
-  await addDoc(collection(db,"dersler"),{
-    kampus,sinif,gun,saat,ders,ogretmen
-  });
-
+  await addDoc(collection(db,"dersler"),data);
   alert("Kaydedildi");
 }
 
-// 📊 HAFTALIK
-window.haftalik = async function(){
+// 📊 TABLO OLUŞTUR
+window.tabloGetir = async function(){
 
   const snap = await getDocs(collection(db,"dersler"));
-  let html="";
+
+  const gunler = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma"];
+  const saatler = ["09:00","10:00","11:00","12:00","13:00","14:00"];
+
+  let veri = {};
 
   snap.forEach(doc=>{
     const d = doc.data();
-    html+=`
-    <div class="card">
-    ${d.gun} ${d.saat}<br>
-    📘 ${d.ders}<br>
-    👨‍🏫 ${d.ogretmen}
-    </div>`;
+
+    if(!veri[d.saat]) veri[d.saat] = {};
+    veri[d.saat][d.gun] = d.ders;
   });
 
-  liste.innerHTML=html;
-}
+  let html = "<table><tr><th>Saat</th>";
 
-// 📅 GÜNLÜK
-window.gunluk = async function(){
+  gunler.forEach(g=> html+="<th>"+g+"</th>");
+  html+="</tr>";
 
-  const gun = document.getElementById("gun").value;
-  const snap = await getDocs(collection(db,"dersler"));
-  let html="";
+  saatler.forEach(s=>{
+    html+="<tr><td>"+s+"</td>";
 
-  snap.forEach(doc=>{
-    const d = doc.data();
-    if(d.gun===gun){
-      html+=`
-      <div class="card">
-      ${d.saat} → ${d.ders}<br>
-      👨‍🏫 ${d.ogretmen}
-      </div>`;
-    }
+    gunler.forEach(g=>{
+      html+="<td>"+(veri[s]?.[g] || "-")+"</td>";
+    });
+
+    html+="</tr>";
   });
 
-  liste.innerHTML=html;
-}
+  html+="</table>";
 
-// 🗑 TEMİZLE
-window.programSil = async function(){
-
-  const snap = await getDocs(collection(db,"dersler"));
-
-  for(let d of snap.docs){
-    await deleteDoc(doc(db,"dersler",d.id));
-  }
-
-  alert("Silindi");
+  tablo.innerHTML = html;
 }
 
 </script>
