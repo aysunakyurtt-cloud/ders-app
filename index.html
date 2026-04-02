@@ -2,205 +2,186 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Ders Programı</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#3498db">
+<title>Ders Programı</title>
 
 <style>
 body {
   font-family: Arial;
+  margin: 0;
   background: linear-gradient(to right, #74ebd5, #9face6);
-  text-align: center;
 }
 
 .container {
-  max-width: 500px;
-  margin: 50px auto;
-  background: white;
-  padding: 25px;
+  max-width: 400px;
+  margin: 40px auto;
+  background: #fff;
+  padding: 20px;
   border-radius: 15px;
+  text-align: center;
 }
 
-input, select {
-  width: 90%;
-  padding: 10px;
-  margin: 5px;
+h2 {
+  margin-bottom: 20px;
+}
+
+input, select, button {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
   border-radius: 10px;
   border: 1px solid #ccc;
 }
 
 button {
-  width: 95%;
-  padding: 10px;
-  margin-top: 10px;
+  background: #3498db;
+  color: white;
   border: none;
+  font-weight: bold;
+}
+
+.kart {
+  background: #f9f9f9;
+  padding: 15px;
+  margin-top: 10px;
   border-radius: 10px;
-  background: #3498db;
+  text-align: left;
+}
+
+.kart p {
+  margin: 5px 0;
+}
+
+.editBtn {
+  background: orange;
   color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 8px;
+  margin-right: 5px;
 }
 
-table {
-  width: 100%;
-  margin-top: 20px;
-  border-collapse: collapse;
-}
-
-th {
-  background: #3498db;
+.deleteBtn {
+  background: red;
   color: white;
+  border: none;
   padding: 8px;
+  border-radius: 8px;
 }
 
-td {
-  padding: 8px;
-  border-bottom: 1px solid #ddd;
+/* MOBİL */
+@media (max-width: 600px) {
+  .container {
+    width: 90%;
+  }
 }
-
-.sil { background: red; }
-.edit { background: orange; }
 </style>
 </head>
 
 <body>
 
 <div class="container">
-<h1>Ders Programı</h1>
+  <h2>Ders Programı</h2>
 
-<select id="filterGun" onchange="listele()">
-<option>Tümü</option>
-<option>Pazartesi</option>
-<option>Salı</option>
-<option>Çarşamba</option>
-<option>Perşembe</option>
-<option>Cuma</option>
-</select>
+  <select id="gun">
+    <option>Pazartesi</option>
+    <option>Salı</option>
+    <option>Çarşamba</option>
+    <option>Perşembe</option>
+    <option>Cuma</option>
+  </select>
 
-<select id="gun">
-<option>Pazartesi</option>
-<option>Salı</option>
-<option>Çarşamba</option>
-<option>Perşembe</option>
-<option>Cuma</option>
-</select>
+  <input type="time" id="saat">
+  <input type="text" id="ders" placeholder="Ders">
+  <input type="text" id="ogretmen" placeholder="Öğretmen">
+  <input type="text" id="sinif" placeholder="Sınıf">
+  <input type="text" id="kampus" placeholder="Kampüs">
 
-<input id="saat" placeholder="Saat">
-<input id="ders" placeholder="Ders">
-<input id="ogretmen" placeholder="Öğretmen">
-<input id="sinif" placeholder="Sınıf">
-<input id="kampus" placeholder="Kampüs">
+  <button onclick="ekle()">Ekle / Güncelle</button>
 
-<button onclick="ekleGuncelle()" id="btn">Ekle</button>
-
-<table>
-<thead>
-<tr>
-<th>Gün</th>
-<th>Saat</th>
-<th>Ders</th>
-<th>Öğretmen</th>
-<th>Sınıf</th>
-<th>Kampüs</th>
-<th>İşlem</th>
-</tr>
-</thead>
-<tbody id="liste"></tbody>
-</table>
+  <div id="liste"></div>
 </div>
 
 <script>
 let dersler = JSON.parse(localStorage.getItem("dersler")) || [];
-let editIndex = -1;
+let editIndex = null;
 
 function kaydet() {
   localStorage.setItem("dersler", JSON.stringify(dersler));
 }
 
-function ekleGuncelle() {
-  let veri = {
-    gun: gun.value,
-    saat: saat.value,
-    ders: ders.value,
-    ogretmen: ogretmen.value,
-    sinif: sinif.value,
-    kampus: kampus.value
+function listeyiGoster() {
+  const liste = document.getElementById("liste");
+  liste.innerHTML = "";
+
+  dersler.forEach((d, i) => {
+    liste.innerHTML += `
+      <div class="kart">
+        <p><b>Gün:</b> ${d.gun}</p>
+        <p><b>Saat:</b> ${d.saat}</p>
+        <p><b>Ders:</b> ${d.ders}</p>
+        <p><b>Öğretmen:</b> ${d.ogretmen}</p>
+        <p><b>Sınıf:</b> ${d.sinif}</p>
+        <p><b>Kampüs:</b> ${d.kampus}</p>
+
+        <button class="editBtn" onclick="duzenle(${i})">Edit</button>
+        <button class="deleteBtn" onclick="sil(${i})">Sil</button>
+      </div>
+    `;
+  });
+}
+
+function ekle() {
+  const veri = {
+    gun: document.getElementById("gun").value,
+    saat: document.getElementById("saat").value,
+    ders: document.getElementById("ders").value,
+    ogretmen: document.getElementById("ogretmen").value,
+    sinif: document.getElementById("sinif").value,
+    kampus: document.getElementById("kampus").value
   };
 
-  if(editIndex === -1) {
+  if (editIndex === null) {
     dersler.push(veri);
   } else {
     dersler[editIndex] = veri;
-    editIndex = -1;
-    btn.innerText = "Ekle";
+    editIndex = null;
   }
 
   kaydet();
+  listeyiGoster();
   temizle();
-  listele();
 }
 
-function listele() {
-  dersler.sort((a,b)=>a.saat.localeCompare(b.saat));
-
-  let secili = filterGun.value;
-  let html = "";
-
-  dersler.forEach((d,i)=>{
-    if(secili==="Tümü" || d.gun===secili){
-      html += `
-      <tr>
-        <td>${d.gun}</td>
-        <td>${d.saat}</td>
-        <td>${d.ders}</td>
-        <td>${d.ogretmen}</td>
-        <td>${d.sinif}</td>
-        <td>${d.kampus}</td>
-        <td>
-          <button class="edit" onclick="edit(${i})">Edit</button>
-          <button class="sil" onclick="sil(${i})">Sil</button>
-        </td>
-      </tr>`;
-    }
-  });
-
-  liste.innerHTML = html;
-}
-
-function sil(i){
-  dersler.splice(i,1);
+function sil(i) {
+  dersler.splice(i, 1);
   kaydet();
-  listele();
+  listeyiGoster();
 }
 
-function edit(i){
-  let d = dersler[i];
+function duzenle(i) {
+  const d = dersler[i];
 
-  gun.value = d.gun;
-  saat.value = d.saat;
-  ders.value = d.ders;
-  ogretmen.value = d.ogretmen;
-  sinif.value = d.sinif;
-  kampus.value = d.kampus;
+  document.getElementById("gun").value = d.gun;
+  document.getElementById("saat").value = d.saat;
+  document.getElementById("ders").value = d.ders;
+  document.getElementById("ogretmen").value = d.ogretmen;
+  document.getElementById("sinif").value = d.sinif;
+  document.getElementById("kampus").value = d.kampus;
 
   editIndex = i;
-  btn.innerText = "Güncelle";
 }
 
-function temizle(){
-  saat.value="";
-  ders.value="";
-  ogretmen.value="";
-  sinif.value="";
-  kampus.value="";
+function temizle() {
+  document.getElementById("saat").value = "";
+  document.getElementById("ders").value = "";
+  document.getElementById("ogretmen").value = "";
+  document.getElementById("sinif").value = "";
+  document.getElementById("kampus").value = "";
 }
 
-listele();
-</script>
-
-<script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js");
-}
+listeyiGoster();
 </script>
 
 </body>
