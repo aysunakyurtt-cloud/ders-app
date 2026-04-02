@@ -6,6 +6,10 @@
 
 <title>Ders Programı</title>
 
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#3498db">
+
 <style>
 body {
   font-family: Arial;
@@ -104,13 +108,16 @@ button {
 </div>
 
 <script>
+// VERİLER
 let dersler = JSON.parse(localStorage.getItem("dersler")) || [];
 let editIndex = null;
 
+// KAYDET
 function kaydet() {
   localStorage.setItem("dersler", JSON.stringify(dersler));
 }
 
+// LİSTEYİ GÖSTER
 function listeyiGoster() {
   const liste = document.getElementById("liste");
   liste.innerHTML = "";
@@ -132,6 +139,7 @@ function listeyiGoster() {
   });
 }
 
+// EKLE / GÜNCELLE
 function ekle() {
   const veri = {
     gun: document.getElementById("gun").value,
@@ -154,12 +162,14 @@ function ekle() {
   temizle();
 }
 
+// SİL
 function sil(i) {
   dersler.splice(i, 1);
   kaydet();
   listeyiGoster();
 }
 
+// EDİT
 function duzenle(i) {
   const d = dersler[i];
 
@@ -173,6 +183,7 @@ function duzenle(i) {
   editIndex = i;
 }
 
+// TEMİZLE
 function temizle() {
   document.getElementById("saat").value = "";
   document.getElementById("ders").value = "";
@@ -181,6 +192,12 @@ function temizle() {
   document.getElementById("kampus").value = "";
 }
 
+// SERVICE WORKER (APP GİBİ)
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js");
+}
+
+// BAŞLAT
 listeyiGoster();
 </script>
 
