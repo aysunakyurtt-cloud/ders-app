@@ -6,43 +6,75 @@
 <title>Ders Programı</title>
 
 <style>
+
 body {
-  font-family: Arial;
-  background: #f4f6fb;
+  font-family: 'Segoe UI', sans-serif;
   margin: 0;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: #fff;
 }
 
+/* Kart */
 .container {
-  max-width: 95%;
-  margin: 20px auto;
+  max-width: 600px;
+  margin: 40px auto;
+  background: #111827;
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
 }
 
+h2 {
+  text-align: center;
+  color: #facc15;
+}
+
+/* Select */
 select {
   width: 100%;
-  padding: 10px;
-  margin-top: 10px;
+  padding: 12px;
+  margin-top: 12px;
+  border-radius: 8px;
+  border: none;
+  background: #1f2937;
+  color: white;
+}
+
+/* Tablo */
+.tableWrap {
+  overflow-x: auto;
+  margin-top: 20px;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 15px;
-}
-
-th, td {
-  border: 1px solid #ddd;
-  text-align: center;
-  padding: 8px;
 }
 
 th {
-  background: #3498db;
-  color: white;
+  background: #facc15;
+  color: black;
+  padding: 10px;
 }
 
-.tableWrap {
-  overflow-x: auto;
+td {
+  padding: 10px;
+  text-align: center;
+  background: #1f2937;
 }
+
+tr:nth-child(even) td {
+  background: #111827;
+}
+
+/* Mobil */
+@media(max-width:600px){
+  .container {
+    margin: 10px;
+    padding: 15px;
+  }
+}
+
 </style>
 </head>
 
@@ -68,7 +100,12 @@ let programlar = [];
 const gunler = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma"];
 const saatler = ["09:00","10:00","11:00","12:00","13:00","14:00","15:00"];
 
-// 📥 JSON OKU
+// İlk harfi büyütme
+function buyut(text){
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+// JSON çek
 fetch("data.json")
   .then(res => res.json())
   .then(data => {
@@ -82,7 +119,7 @@ function kampusleriDoldur(){
   kampus.innerHTML = "<option>Kampüs Seç</option>";
 
   list.forEach(k=>{
-    kampus.innerHTML += `<option>${k}</option>`;
+    kampus.innerHTML += `<option value="${k}">${buyut(k)}</option>`;
   });
 }
 
@@ -95,7 +132,7 @@ function siniflariDoldur(){
   sinif.innerHTML = "<option>Sınıf Seç</option>";
 
   list.forEach(s=>{
-    sinif.innerHTML += `<option>${s}</option>`;
+    sinif.innerHTML += `<option>${s}. Sınıf</option>`;
   });
 }
 
@@ -125,7 +162,7 @@ function tabloOlustur(){
         p.saat===saat
       );
 
-      html += `<td>${ders ? ders.ders : ""}</td>`;
+      html += `<td>${ders ? ders.ders : "-"}</td>`;
     });
 
     html += "</tr>";
@@ -134,7 +171,7 @@ function tabloOlustur(){
   tablo.innerHTML = html;
 }
 
-// Events
+// Event
 kampus.onchange = ()=>{
   siniflariDoldur();
   tabloOlustur();
