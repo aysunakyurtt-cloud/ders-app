@@ -20,187 +20,170 @@ body {
 }
 
 input, select {
-    width: 90%;
+    width: 100%;
     padding: 12px;
-    margin: 6px;
+    margin: 8px 0;
     border-radius: 8px;
+    border: 1px solid #ccc;
 }
 
 button {
-    width: 95%;
+    width: 100%;
     padding: 12px;
-    background: #2196F3;
+    background: #2d8cf0;
     color: white;
     border: none;
     border-radius: 8px;
+    cursor: pointer;
 }
 
 table {
     width: 100%;
-    margin-top: 20px;
+    margin-top: 15px;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 10px;
+    border: 1px solid #ccc;
 }
 
 th {
-    background: #2196F3;
+    background: #2d8cf0;
     color: white;
 }
 
-td {
-    padding: 8px;
-    border-bottom: 1px solid #ddd;
+.sil-btn {
+    background: red;
+    color: white;
+    border: none;
+    padding: 5px 8px;
+    cursor: pointer;
+    border-radius: 5px;
 }
-
-.edit-btn { background: orange; }
-.delete-btn { background: red; }
 </style>
-</head>
 
+</head>
 <body>
 
 <div class="container">
+    <h2>Ders Programı</h2>
 
-<h1>Ders Programı</h1>
+    <select id="filtre" onchange="tabloyuGuncelle()">
+        <option value="Tümü">Tümü</option>
+        <option>Pazartesi</option>
+        <option>Salı</option>
+        <option>Çarşamba</option>
+        <option>Perşembe</option>
+        <option>Cuma</option>
+    </select>
 
-<!-- FİLTRE -->
-<select onchange="filtrele(this.value)">
-    <option value="hepsi">Tümü</option>
-    <option>Pazartesi</option>
-    <option>Salı</option>
-    <option>Çarşamba</option>
-    <option>Perşembe</option>
-    <option>Cuma</option>
-</select>
+    <select id="gun">
+        <option>Pazartesi</option>
+        <option>Salı</option>
+        <option>Çarşamba</option>
+        <option>Perşembe</option>
+        <option>Cuma</option>
+    </select>
 
-<select id="gun">
-    <option>Pazartesi</option>
-    <option>Salı</option>
-    <option>Çarşamba</option>
-    <option>Perşembe</option>
-    <option>Cuma</option>
-</select>
+    <input id="saat" placeholder="Saat">
+    <input id="ders" placeholder="Ders">
+    <input id="ogretmen" placeholder="Öğretmen">
+    <input id="sinif" placeholder="Sınıf">
+    <input id="kampus" placeholder="Kampüs">
 
-<input id="saat" placeholder="Saat">
-<input id="ders" placeholder="Ders">
-<input id="ogretmen" placeholder="Öğretmen">
-<input id="sinif" placeholder="Sınıf">
-<input id="kampus" placeholder="Kampüs">
+    <button onclick="ekle()">Ekle</button>
 
-<button onclick="ekle()">Ekle / Güncelle</button>
-
-<table id="tablo">
-<tr>
-<th>Gün</th>
-<th>Saat</th>
-<th>Ders</th>
-<th>Öğretmen</th>
-<th>Sınıf</th>
-<th>Kampüs</th>
-<th>İşlem</th>
-</tr>
-</table>
-
+    <table>
+        <thead>
+            <tr>
+                <th>Gün</th>
+                <th>Saat</th>
+                <th>Ders</th>
+                <th>Öğretmen</th>
+                <th>Sınıf</th>
+                <th>Kampüs</th>
+                <th>Sil</th>
+            </tr>
+        </thead>
+        <tbody id="tablo"></tbody>
+    </table>
 </div>
 
 <script>
-let program = JSON.parse(localStorage.getItem("program")) || [];
-let editIndex = -1;
-let aktifFiltre = "hepsi";
 
-window.onload = tabloYenile;
+// 📌 LOCAL STORAGE
+let dersler = JSON.parse(localStorage.getItem("dersler")) || [];
 
+// 📌 SAYFA AÇILINCA
+window.onload = function () {
+    tabloyuGuncelle();
+};
+
+// 📌 EKLE
 function ekle() {
-    let veri = {
-        gun: gun.value,
-        saat: saat.value,
-        ders: ders.value,
-        ogretmen: ogretmen.value,
-        sinif: sinif.value,
-        kampus: kampus.value
-    };
+    const gun = document.getElementById("gun").value;
+    const saat = document.getElementById("saat").value;
+    const ders = document.getElementById("ders").value;
+    const ogretmen = document.getElementById("ogretmen").value;
+    const sinif = document.getElementById("sinif").value;
+    const kampus = document.getElementById("kampus").value;
 
-    if(!veri.saat || !veri.ders) return alert("Boş bırakma!");
-
-    if(editIndex === -1) {
-        program.push(veri);
-    } else {
-        program[editIndex] = veri;
-        editIndex = -1;
+    if (!saat || !ders) {
+        alert("Saat ve ders boş olamaz!");
+        return;
     }
 
-    localStorage.setItem("program", JSON.stringify(program));
-    temizle();
-    tabloYenile();
+    const yeniDers = { gun, saat, ders, ogretmen, sinif, kampus };
+
+    dersler.push(yeniDers);
+
+    localStorage.setItem("dersler", JSON.stringify(dersler));
+
+    tabloyuGuncelle();
+
+    // input temizle
+    document.getElementById("saat").value = "";
+    document.getElementById("ders").value = "";
+    document.getElementById("ogretmen").value = "";
+    document.getElementById("sinif").value = "";
+    document.getElementById("kampus").value = "";
 }
 
-function satirEkle(veri, index) {
+// 📌 TABLO GÜNCELLE + FİLTRE
+function tabloyuGuncelle() {
+    const tablo = document.getElementById("tablo");
+    const filtre = document.getElementById("filtre").value;
 
-    if(aktifFiltre !== "hepsi" && veri.gun !== aktifFiltre) return;
+    tablo.innerHTML = "";
 
-    let tr = tablo.insertRow();
+    dersler.forEach((ders, index) => {
 
-    tr.insertCell(0).innerText = veri.gun;
-    tr.insertCell(1).innerText = veri.saat;
-    tr.insertCell(2).innerText = veri.ders;
-    tr.insertCell(3).innerText = veri.ogretmen;
-    tr.insertCell(4).innerText = veri.sinif;
-    tr.insertCell(5).innerText = veri.kampus;
+        if (filtre !== "Tümü" && ders.gun !== filtre) return;
 
-    let td = tr.insertCell(6);
-
-    let edit = document.createElement("button");
-    edit.innerText = "Edit";
-    edit.className = "edit-btn";
-    edit.onclick = () => {
-        gun.value = veri.gun;
-        saat.value = veri.saat;
-        ders.value = veri.ders;
-        ogretmen.value = veri.ogretmen;
-        sinif.value = veri.sinif;
-        kampus.value = veri.kampus;
-        editIndex = index;
-    };
-
-    let sil = document.createElement("button");
-    sil.innerText = "Sil";
-    sil.className = "delete-btn";
-    sil.onclick = () => {
-        program.splice(index,1);
-        localStorage.setItem("program", JSON.stringify(program));
-        tabloYenile();
-    };
-
-    td.appendChild(edit);
-    td.appendChild(sil);
+        tablo.innerHTML += `
+            <tr>
+                <td>${ders.gun}</td>
+                <td>${ders.saat}</td>
+                <td>${ders.ders}</td>
+                <td>${ders.ogretmen}</td>
+                <td>${ders.sinif}</td>
+                <td>${ders.kampus}</td>
+                <td>
+                    <button class="sil-btn" onclick="sil(${index})">Sil</button>
+                </td>
+            </tr>
+        `;
+    });
 }
 
-function tabloYenile() {
-    tablo.innerHTML = `
-    <tr>
-    <th>Gün</th>
-    <th>Saat</th>
-    <th>Ders</th>
-    <th>Öğretmen</th>
-    <th>Sınıf</th>
-    <th>Kampüs</th>
-    <th>İşlem</th>
-    </tr>
-    `;
-
-    program.forEach((v,i)=>satirEkle(v,i));
+// 📌 SİL
+function sil(index) {
+    dersler.splice(index, 1);
+    localStorage.setItem("dersler", JSON.stringify(dersler));
+    tabloyuGuncelle();
 }
 
-function filtrele(gunSecim) {
-    aktifFiltre = gunSecim;
-    tabloYenile();
-}
-
-function temizle() {
-    saat.value="";
-    ders.value="";
-    ogretmen.value="";
-    sinif.value="";
-    kampus.value="";
-}
 </script>
 
 </body>
