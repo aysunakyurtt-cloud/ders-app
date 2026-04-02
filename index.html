@@ -91,6 +91,7 @@ button:hover {
 <button onclick="haftalikGetir()">Haftalık Program</button>
 <button onclick="gunGetir()">Seçilen Gün</button>
 <button onclick="otomatikProgram()">🤖 Otomatik Program</button>
+<button onclick="programSil()">🗑 Programı Temizle</button>
 
 <div id="liste"></div>
 </div>
@@ -98,7 +99,7 @@ button:hover {
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBCUrqU0_PrzConRKjlYNoZ7yU38ZPwxfk",
@@ -112,7 +113,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 📌 Ders Kaydet
+//////////////////////////////////////
+// 📌 DERS KAYDET + ÇAKIŞMA ENGEL
+//////////////////////////////////////
 window.dersKaydet = async function(){
 
   const kampus = document.getElementById("kampus").value;
@@ -121,7 +124,11 @@ window.dersKaydet = async function(){
   const saat = document.getElementById("saat").value;
   const ders = document.getElementById("ders").value;
 
-  // ÇAKIŞMA KONTROL
+  if(!saat || !ders){
+    alert("Boş bırakma!");
+    return;
+  }
+
   const q = query(collection(db,"dersler"),
     where("kampus","==",kampus),
     where("sinif","==",sinif),
@@ -143,7 +150,9 @@ window.dersKaydet = async function(){
   alert("✅ Kaydedildi");
 }
 
-// 📌 Haftalık Program
+//////////////////////////////////////
+// 📌 HAFTALIK PROGRAM
+//////////////////////////////////////
 window.haftalikGetir = async function(){
 
   const kampus = document.getElementById("kampus").value;
@@ -156,7 +165,7 @@ window.haftalikGetir = async function(){
 
   const snap = await getDocs(q);
 
-  let html="";
+  let html="<h3>Haftalık Program</h3>";
 
   snap.forEach(doc=>{
     const d = doc.data();
@@ -166,7 +175,9 @@ window.haftalikGetir = async function(){
   document.getElementById("liste").innerHTML = html;
 }
 
-// 📌 Gün Getir
+//////////////////////////////////////
+// 📌 GÜNE GÖRE
+//////////////////////////////////////
 window.gunGetir = async function(){
 
   const kampus = document.getElementById("kampus").value;
@@ -191,7 +202,9 @@ window.gunGetir = async function(){
   document.getElementById("liste").innerHTML = html;
 }
 
-// 📌 OTOMATİK PROGRAM
+//////////////////////////////////////
+// 🤖 OTOMATİK PROGRAM
+//////////////////////////////////////
 const dersDagilimi = {
   "1":[
     {ad:"Matematik",saat:5},
@@ -243,6 +256,28 @@ window.otomatikProgram = async function(){
   }
 
   alert("🤖 Otomatik program oluşturuldu!");
+}
+
+//////////////////////////////////////
+// 🗑 PROGRAM SİL
+//////////////////////////////////////
+window.programSil = async function(){
+
+  const kampus = document.getElementById("kampus").value;
+  const sinif = document.getElementById("sinif").value;
+
+  const q = query(collection(db,"dersler"),
+    where("kampus","==",kampus),
+    where("sinif","==",sinif)
+  );
+
+  const snap = await getDocs(q);
+
+  for (let d of snap.docs) {
+    await deleteDoc(doc(db,"dersler", d.id));
+  }
+
+  alert("🗑 Program silindi!");
 }
 
 </script>
