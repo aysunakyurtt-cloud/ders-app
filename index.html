@@ -20,7 +20,7 @@ body {
   border-radius: 15px;
 }
 
-input, button {
+input, select, button {
   width: 100%;
   margin-top: 10px;
   padding: 10px;
@@ -54,7 +54,34 @@ button {
 <input id="ders" placeholder="Ders">
 <input id="ogretmen" placeholder="Öğretmen">
 <input id="sinif" placeholder="Sınıf">
-<input id="kampus" placeholder="Kampüs">
+
+<select id="kampus">
+<option value="">Kampüs Seç</option>
+<option>Adıyaman</option>
+<option>Bahçelievler</option>
+<option>Başakşehir</option>
+<option>Bahçeşehir</option>
+<option>Beykent</option>
+<option>Bursa</option>
+<option>Çamlıca</option>
+<option>Çekmeköy</option>
+<option>Çayyolu</option>
+<option>Florya</option>
+<option>Gaziosmanpaşa</option>
+<option>Gebze</option>
+<option>Kağıthane</option>
+<option>Kartal</option>
+<option>Haliç</option>
+<option>Halkalı</option>
+<option>Mavişehir</option>
+<option>Kocasinan</option>
+<option>Maltepe</option>
+<option>Mersin</option>
+<option>Pendik</option>
+<option>Pendik Lise</option>
+<option>Sancaktepe</option>
+<option>Şanlıurfa</option>
+</select>
 
 <button onclick="ekle()">Ders Ekle</button>
 <button onclick="otomatikOlustur()">🤖 Akıllı Program Yap</button>
@@ -93,6 +120,12 @@ function listeyiGoster(){
 }
 
 function ekle(){
+
+  if(!kampus.value){
+    alert("Kampüs seçmelisin!");
+    return;
+  }
+
   const veri = {
     ders: ders.value,
     ogretmen: ogretmen.value,
@@ -150,61 +183,61 @@ function uygunMu(gun,saat,ders){
   );
 }
 
-// 🔥 Öğretmen hangi günlerde var
-function ogretmenGunleri(){
-  const map = {};
-  dersler.forEach(d=>{
-    if(!map[d.ogretmen]){
-      map[d.ogretmen] = new Set();
-    }
-    if(d.gun){
-      map[d.ogretmen].add(d.gun);
-    }
-  });
-  return map;
-}
-
-// 🤖 AKILLI PROGRAM
+// 🤖 KAMPÜS + ÖĞRETMEN AKILLI PROGRAM
 function otomatikOlustur(){
 
-  // sıfırla
   dersler.forEach(d=>{
     d.gun="";
     d.saat="";
   });
 
+  let kampusMap = {};
   let ogretmenMap = {};
 
-  dersler.forEach(ders=>{
-
-    let tercihGunler = ogretmenMap[ders.ogretmen] || gunler;
-
-    let yerlesti = false;
-
-    for(let g of tercihGunler){
-      for(let s of saatler){
-
-        if(uygunMu(g,s,ders)){
-          ders.gun = g;
-          ders.saat = s;
-
-          if(!ogretmenMap[ders.ogretmen]){
-            ogretmenMap[ders.ogretmen] = [];
-          }
-
-          if(!ogretmenMap[ders.ogretmen].includes(g)){
-            ogretmenMap[ders.ogretmen].push(g);
-          }
-
-          yerlesti = true;
-          break;
-        }
-
-      }
-      if(yerlesti) break;
+  dersler.forEach(d=>{
+    if(!kampusMap[d.kampus]){
+      kampusMap[d.kampus] = [];
     }
-
+    kampusMap[d.kampus].push(d);
   });
+
+  let gunIndex = 0;
+
+  for(let kampus in kampusMap){
+
+    let dersListesi = kampusMap[kampus];
+    let gun = gunler[gunIndex % gunler.length];
+    let saatIndex = 0;
+
+    dersListesi.forEach(ders=>{
+
+      let tercihGunler = ogretmenMap[ders.ogretmen] || [gun];
+
+      for(let g of tercihGunler){
+        for(let s of saatler){
+
+          if(uygunMu(g,s,ders)){
+            ders.gun = g;
+            ders.saat = s;
+
+            if(!ogretmenMap[ders.ogretmen]){
+              ogretmenMap[ders.ogretmen] = [];
+            }
+
+            if(!ogretmenMap[ders.ogretmen].includes(g)){
+              ogretmenMap[ders.ogretmen].push(g);
+            }
+
+            return;
+          }
+
+        }
+      }
+
+    });
+
+    gunIndex++;
+  }
 
   kaydet();
   listeyiGoster();
