@@ -3,22 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ders Programı</title>
+<title>Akıllı Ders Programı</title>
 
 <style>
 body {
   margin:0;
-  font-family: 'Segoe UI', sans-serif;
-  background: radial-gradient(circle at top, #1e293b, #020617);
+  font-family: Arial;
+  background: #020617;
   color:white;
 }
 
 .container {
-  max-width:950px;
+  max-width:1000px;
   margin:40px auto;
-  padding:25px;
-  border-radius:20px;
-  background: rgba(30,41,59,0.9);
+  padding:20px;
 }
 
 h1 {
@@ -26,12 +24,11 @@ h1 {
   color:#facc15;
 }
 
-/* INPUT */
-input,select,button {
+input,button,select {
   width:100%;
-  padding:12px;
+  padding:10px;
   margin-top:10px;
-  border-radius:10px;
+  border-radius:8px;
   border:none;
 }
 
@@ -41,9 +38,6 @@ button {
   cursor:pointer;
 }
 
-.hidden { display:none; }
-
-/* TABLO */
 table {
   width:100%;
   margin-top:20px;
@@ -52,27 +46,21 @@ table {
 
 th, td {
   border:1px solid #334155;
-  padding:12px;
+  padding:10px;
   text-align:center;
 }
 
 th {
-  background:#020617;
+  background:black;
   color:#facc15;
 }
 
-td {
-  font-weight:bold;
-  color:white;
+.card {
+  background:#0f172a;
+  padding:15px;
+  border-radius:10px;
+  margin-top:15px;
 }
-
-/* RENKLER */
-.matematik { background:#2563eb; }
-.turkce { background:#dc2626; }
-.fen { background:#16a34a; }
-.ingilizce { background:#9333ea; }
-.diger { background:#475569; }
-
 </style>
 </head>
 
@@ -80,177 +68,142 @@ td {
 
 <div class="container">
 
-<h1>Ders Programı</h1>
+<h1>🤖 Akıllı Ders Programı</h1>
 
-<!-- LOGIN -->
-<div id="loginBox">
-<input id="user" placeholder="Kullanıcı adı">
-<input id="pass" type="password" placeholder="Şifre">
-<button onclick="giris()">Giriş Yap</button>
+<!-- ÖĞRETMEN EKLE -->
+<div class="card">
+<h3>👨‍🏫 Öğretmen Ekle</h3>
+<input id="ogretmenAd" placeholder="Ad">
+<input id="ogretmenBrans" placeholder="Branş">
+<button onclick="ogretmenEkle()">Ekle</button>
 </div>
 
-<!-- PANEL -->
-<div id="panel" class="hidden">
-
-<select id="kampus">
-<option>Haliç</option>
-<option>Bahçeşehir</option>
-<option>Beykent</option>
-</select>
-
+<!-- DERS EKLE -->
+<div class="card">
+<h3>📚 Ders Planı</h3>
 <select id="sinif">
 <option value="1">1. Sınıf</option>
 <option value="2">2. Sınıf</option>
 </select>
 
-<select id="gun">
-<option>Pazartesi</option>
-<option>Salı</option>
-<option>Çarşamba</option>
-<option>Perşembe</option>
-<option>Cuma</option>
-</select>
+<input id="dersAdi" placeholder="Ders">
+<input id="dersSaat" type="number" placeholder="Haftalık Saat">
 
-<input type="time" id="saat">
-<input id="ders" placeholder="Ders (Matematik vb)">
-<input id="ogretmen" placeholder="Öğretmen">
-
-<button onclick="dersKaydet()">Dersi Kaydet</button>
-
+<button onclick="dersEkle()">Ekle</button>
 </div>
 
-<button onclick="tabloGetir()">📊 Haftalık Tablo</button>
+<!-- OLUŞTUR -->
+<button onclick="programOlustur()">🚀 OTOMATİK PROGRAM OLUŞTUR</button>
 
 <div id="tablo"></div>
 
 </div>
 
-<script type="module">
+<script>
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+let ogretmenler = [];
+let dersler = [];
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBCUrqU0_PrzConRKjlYNoZ7yU38ZPwxfk",
-  authDomain: "ders-programi-d79e0.firebaseapp.com",
-  projectId: "ders-programi-d79e0",
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// LOGIN
-window.giris = function(){
-  if(user.value==="admin" && pass.value==="1234"){
-    loginBox.style.display="none";
-    panel.classList.remove("hidden");
-  } else alert("Hatalı giriş");
-}
-
-// SAAT YUVARLAMA
-function saatDuzenle(saat){
-
-  const saatMap = {
-    "08":"09:00",
-    "09":"09:00",
-    "10":"10:00",
-    "11":"11:00",
-    "12":"12:00",
-    "13":"13:00",
-    "14":"14:00"
-  };
-
-  const s = saat.split(":")[0];
-  return saatMap[s] || "09:00";
-}
-
-// KAYDET
-window.dersKaydet = async function(){
-
-  let saat = document.getElementById("saat").value;
-  saat = saatDuzenle(saat);
-
-  const data = {
-    kampus: kampus.value,
-    sinif: sinif.value,
-    gun: gun.value,
-    saat: saat,
-    ders: ders.value,
-    ogretmen: ogretmen.value
-  };
-
-  const snap = await getDocs(collection(db,"dersler"));
-
-  let cakisma=false;
-
-  snap.forEach(doc=>{
-    const d = doc.data();
-
-    if(
-      d.kampus===data.kampus &&
-      d.sinif===data.sinif &&
-      d.gun===data.gun &&
-      d.saat===data.saat
-    ) cakisma=true;
-
-    if(
-      d.ogretmen===data.ogretmen &&
-      d.gun===data.gun &&
-      d.saat===data.saat
-    ) cakisma=true;
+// öğretmen ekle
+function ogretmenEkle(){
+  ogretmenler.push({
+    ad: ogretmenAd.value,
+    brans: ogretmenBrans.value
   });
+  alert("Öğretmen eklendi");
+}
 
-  if(cakisma){
-    alert("❌ Çakışma var!");
-    return;
+// ders ekle
+function dersEkle(){
+  dersler.push({
+    sinif: sinif.value,
+    ders: dersAdi.value,
+    haftalikSaat: Number(dersSaat.value)
+  });
+  alert("Ders eklendi");
+}
+
+// PROGRAM OLUŞTUR
+function programOlustur(){
+
+  const gunler = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma"];
+  const saatler = ["09:00","10:00","11:00","12:00","13:00","14:00"];
+
+  let program = [];
+  let dolu = {};
+
+  function uygunMu(ogretmen, gun, saat){
+    return !program.some(p =>
+      p.ogretmen === ogretmen &&
+      p.gun === gun &&
+      p.saat === saat
+    );
   }
 
-  await addDoc(collection(db,"dersler"),data);
+  dersler.forEach(dersItem => {
 
-  alert("✅ Kaydedildi");
-}
+    let kalan = dersItem.haftalikSaat;
 
-// RENK
-function renkGetir(ders){
-  ders = ders.toLowerCase();
+    while(kalan > 0){
 
-  if(ders.includes("mat")) return "matematik";
-  if(ders.includes("türk")) return "turkce";
-  if(ders.includes("fen")) return "fen";
-  if(ders.includes("ing")) return "ingilizce";
+      let yerlesti = false;
 
-  return "diger";
+      for(let gun of gunler){
+        for(let saat of saatler){
+
+          const key = dersItem.sinif + gun + saat;
+
+          if(dolu[key]) continue;
+
+          const ogretmen = ogretmenler.find(o =>
+            o.brans.toLowerCase() === dersItem.ders.toLowerCase()
+          );
+
+          if(!ogretmen) continue;
+
+          if(!uygunMu(ogretmen.ad, gun, saat)) continue;
+
+          program.push({
+            sinif: dersItem.sinif,
+            ders: dersItem.ders,
+            ogretmen: ogretmen.ad,
+            gun,
+            saat
+          });
+
+          dolu[key] = true;
+          kalan--;
+          yerlesti = true;
+          break;
+        }
+        if(yerlesti) break;
+      }
+
+      if(!yerlesti){
+        alert("Yer bulunamadı: " + dersItem.ders);
+        break;
+      }
+    }
+
+  });
+
+  tabloyuCiz(program);
 }
 
 // TABLO
-window.tabloGetir = async function(){
-
-  const seciliKampus = kampus.value;
-  const seciliSinif = sinif.value;
-
-  const snap = await getDocs(collection(db,"dersler"));
+function tabloyuCiz(program){
 
   const gunler = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma"];
   const saatler = ["09:00","10:00","11:00","12:00","13:00","14:00"];
 
   let veri = {};
 
-  snap.forEach(doc=>{
-    const d = doc.data();
-
-    if(d.kampus !== seciliKampus) return;
-    if(d.sinif !== seciliSinif) return;
-
-    if(!veri[d.saat]) veri[d.saat] = {};
-
-    veri[d.saat][d.gun] = {
-      ders:d.ders,
-      ogretmen:d.ogretmen
-    };
+  program.forEach(p=>{
+    if(!veri[p.saat]) veri[p.saat]={};
+    veri[p.saat][p.gun] = p.ders + "<br><small>"+p.ogretmen+"</small>";
   });
 
   let html = "<table><tr><th>Saat</th>";
-
   gunler.forEach(g=> html+="<th>"+g+"</th>");
   html+="</tr>";
 
@@ -258,19 +211,7 @@ window.tabloGetir = async function(){
     html+="<tr><td>"+s+"</td>";
 
     gunler.forEach(g=>{
-      const cell = veri[s]?.[g];
-
-      if(cell){
-        const renk = renkGetir(cell.ders);
-
-        html+=`
-        <td class="${renk}">
-          ${cell.ders}<br>
-          <small>${cell.ogretmen}</small>
-        </td>`;
-      } else {
-        html+="<td>-</td>";
-      }
+      html+="<td>"+(veri[s]?.[g] || "-")+"</td>";
     });
 
     html+="</tr>";
@@ -278,7 +219,7 @@ window.tabloGetir = async function(){
 
   html+="</table>";
 
-  tablo.innerHTML = html;
+  document.getElementById("tablo").innerHTML = html;
 }
 
 </script>
