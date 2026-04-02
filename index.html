@@ -26,11 +26,12 @@ h1 {
     color: #ffd700;
 }
 
-select {
+select, input {
     width: 100%;
     padding: 12px;
-    margin: 6px 0;
+    margin: 8px 0;
     border-radius: 10px;
+    border: none;
     background: #222;
     color: white;
 }
@@ -40,6 +41,7 @@ select {
     padding: 15px;
     border-radius: 15px;
     margin-top: 10px;
+    border-left: 4px solid #ffd700;
 }
 </style>
 </head>
@@ -50,12 +52,22 @@ select {
 
 <h1>Ders Programı</h1>
 
-<select id="kampus" onchange="programGetir()">
+<select id="kampus">
 <option value="">Kampüs Seç</option>
-<option>Haliç</option>
 <option>Bahçelievler</option>
-<option>Florya</option>
+<option>Başakşehir</option>
+<option>Haliç</option>
 </select>
+
+<select id="sinif">
+<option value="">Sınıf Seç</option>
+<option>5A</option>
+<option>6A</option>
+</select>
+
+<input type="date" id="tarih">
+
+<button onclick="goster()">Programı Göster</button>
 
 <div id="liste"></div>
 
@@ -63,40 +75,63 @@ select {
 
 <script>
 
-// 🔥 HAZIR PROGRAMLAR
-const programlar = {
-    "Haliç": [
-        {gun:"Pazartesi", saat:"09:00", ders:"Matematik", ogretmen:"Ahmet", sinif:"5"},
-        {gun:"Salı", saat:"10:00", ders:"Türkçe", ogretmen:"Ayşe", sinif:"5"}
-    ],
-    "Bahçelievler": [
-        {gun:"Pazartesi", saat:"11:00", ders:"Fizik", ogretmen:"Mehmet", sinif:"6"}
-    ],
-    "Florya": [
-        {gun:"Çarşamba", saat:"13:00", ders:"Kimya", ogretmen:"Zeynep", sinif:"7"}
-    ]
-};
+// 🔥 TÜM HAFTA PROGRAM
+const programlar = [
 
-// 🎯 KAMPÜS SEÇİNCE ÇALIŞIR
-function programGetir() {
+{kampus:"Bahçelievler", sinif:"5A", gun:"Pazartesi", saat:"09:00", ders:"Matematik"},
+{kampus:"Bahçelievler", sinif:"5A", gun:"Salı", saat:"10:00", ders:"Türkçe"},
+{kampus:"Bahçelievler", sinif:"5A", gun:"Çarşamba", saat:"11:00", ders:"Fen"},
+{kampus:"Bahçelievler", sinif:"5A", gun:"Perşembe", saat:"12:00", ders:"İngilizce"},
+{kampus:"Bahçelievler", sinif:"5A", gun:"Cuma", saat:"13:00", ders:"Sosyal"},
+
+{kampus:"Başakşehir", sinif:"6A", gun:"Pazartesi", saat:"09:00", ders:"Fizik"},
+{kampus:"Başakşehir", sinif:"6A", gun:"Salı", saat:"10:00", ders:"Kimya"},
+{kampus:"Başakşehir", sinif:"6A", gun:"Çarşamba", saat:"11:00", ders:"Biyoloji"},
+{kampus:"Başakşehir", sinif:"6A", gun:"Perşembe", saat:"12:00", ders:"Matematik"},
+{kampus:"Başakşehir", sinif:"6A", gun:"Cuma", saat:"13:00", ders:"Türkçe"}
+
+];
+
+// 📅 TARİH → GÜN ÇEVİR
+function gunBul(tarih) {
+    const gunler = ["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"];
+    const d = new Date(tarih);
+    return gunler[d.getDay()];
+}
+
+// 🎯 GÖSTER
+function goster(){
+
     let kampus = document.getElementById("kampus").value;
+    let sinif = document.getElementById("sinif").value;
+    let tarih = document.getElementById("tarih").value;
     let liste = document.getElementById("liste");
 
-    liste.innerHTML = "";
-
-    if (!programlar[kampus]) {
-        liste.innerHTML = "Program bulunamadı";
+    if(!kampus || !sinif || !tarih){
+        liste.innerHTML = "Lütfen tüm seçimleri yap";
         return;
     }
 
-    programlar[kampus].forEach(d => {
+    let gun = gunBul(tarih);
+
+    let filtre = programlar.filter(p =>
+        p.kampus === kampus &&
+        p.sinif === sinif &&
+        p.gun === gun
+    );
+
+    liste.innerHTML = `<h3>${gun} Programı</h3>`;
+
+    if(filtre.length === 0){
+        liste.innerHTML += "Bugün ders yok";
+        return;
+    }
+
+    filtre.forEach(d => {
         liste.innerHTML += `
         <div class="card">
-            <b>${d.gun}</b><br>
             Saat: ${d.saat}<br>
-            Ders: ${d.ders}<br>
-            Öğretmen: ${d.ogretmen}<br>
-            Sınıf: ${d.sinif}
+            Ders: ${d.ders}
         </div>`;
     });
 }
