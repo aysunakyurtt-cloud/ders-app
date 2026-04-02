@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <title>Ders Programı</title>
 
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#3498db">
+
 <style>
 body {
   font-family: Arial;
@@ -17,10 +20,6 @@ body {
   background: white;
   padding: 25px;
   border-radius: 15px;
-}
-
-h1 {
-  margin-bottom: 20px;
 }
 
 input, select {
@@ -39,7 +38,6 @@ button {
   border-radius: 10px;
   background: #3498db;
   color: white;
-  cursor: pointer;
 }
 
 table {
@@ -59,68 +57,55 @@ td {
   border-bottom: 1px solid #ddd;
 }
 
-.sil {
-  background: red;
-  color: white;
-  border: none;
-  padding: 5px;
-  border-radius: 5px;
-}
-
-.edit {
-  background: orange;
-  color: white;
-  border: none;
-  padding: 5px;
-  border-radius: 5px;
-}
+.sil { background: red; }
+.edit { background: orange; }
 </style>
 </head>
 
 <body>
 
 <div class="container">
-  <h1>Ders Programı</h1>
+<h1>Ders Programı</h1>
 
-  <select id="filterGun" onchange="listele()">
-    <option value="Tümü">Tümü</option>
-    <option>Pazartesi</option>
-    <option>Salı</option>
-    <option>Çarşamba</option>
-    <option>Perşembe</option>
-    <option>Cuma</option>
-  </select>
+<select id="filterGun" onchange="listele()">
+<option>Tümü</option>
+<option>Pazartesi</option>
+<option>Salı</option>
+<option>Çarşamba</option>
+<option>Perşembe</option>
+<option>Cuma</option>
+</select>
 
-  <select id="gun">
-    <option>Pazartesi</option>
-    <option>Salı</option>
-    <option>Çarşamba</option>
-    <option>Perşembe</option>
-    <option>Cuma</option>
-  </select>
+<select id="gun">
+<option>Pazartesi</option>
+<option>Salı</option>
+<option>Çarşamba</option>
+<option>Perşembe</option>
+<option>Cuma</option>
+</select>
 
-  <input id="saat" placeholder="Saat (örn: 09:00)">
-  <input id="ders" placeholder="Ders">
-  <input id="ogretmen" placeholder="Öğretmen">
-  <input id="sinif" placeholder="Sınıf">
-  <input id="kampus" placeholder="Kampüs">
+<input id="saat" placeholder="Saat">
+<input id="ders" placeholder="Ders">
+<input id="ogretmen" placeholder="Öğretmen">
+<input id="sinif" placeholder="Sınıf">
+<input id="kampus" placeholder="Kampüs">
 
-  <button onclick="ekleGuncelle()" id="btn">Ekle</button>
+<button onclick="ekleGuncelle()" id="btn">Ekle</button>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Gün</th>
-        <th>Saat</th>
-        <th>Ders</th>
-        <th>Öğretmen</th>
-        <th>Sınıf</th>
-        <th>Kampüs</th>
-        <th>İşlem</th>
-      </tr>
-    </thead>
-    <tbody id="liste"></tbody>
-  </table>
+<table>
+<thead>
+<tr>
+<th>Gün</th>
+<th>Saat</th>
+<th>Ders</th>
+<th>Öğretmen</th>
+<th>Sınıf</th>
+<th>Kampüs</th>
+<th>İşlem</th>
+</tr>
+</thead>
+<tbody id="liste"></tbody>
+</table>
 </div>
 
 <script>
@@ -133,12 +118,12 @@ function kaydet() {
 
 function ekleGuncelle() {
   let veri = {
-    gun: document.getElementById("gun").value,
-    saat: document.getElementById("saat").value,
-    ders: document.getElementById("ders").value,
-    ogretmen: document.getElementById("ogretmen").value,
-    sinif: document.getElementById("sinif").value,
-    kampus: document.getElementById("kampus").value
+    gun: gun.value,
+    saat: saat.value,
+    ders: ders.value,
+    ogretmen: ogretmen.value,
+    sinif: sinif.value,
+    kampus: kampus.value
   };
 
   if(editIndex === -1) {
@@ -146,7 +131,7 @@ function ekleGuncelle() {
   } else {
     dersler[editIndex] = veri;
     editIndex = -1;
-    document.getElementById("btn").innerText = "Ekle";
+    btn.innerText = "Ekle";
   }
 
   kaydet();
@@ -155,15 +140,13 @@ function ekleGuncelle() {
 }
 
 function listele() {
+  dersler.sort((a,b)=>a.saat.localeCompare(b.saat));
 
-  // 🔥 SAATE GÖRE SIRALA
-  dersler.sort((a, b) => a.saat.localeCompare(b.saat));
-
-  let secili = document.getElementById("filterGun").value;
+  let secili = filterGun.value;
   let html = "";
 
-  dersler.forEach((d, i) => {
-    if(secili === "Tümü" || d.gun === secili) {
+  dersler.forEach((d,i)=>{
+    if(secili==="Tümü" || d.gun===secili){
       html += `
       <tr>
         <td>${d.gun}</td>
@@ -180,38 +163,44 @@ function listele() {
     }
   });
 
-  document.getElementById("liste").innerHTML = html;
+  liste.innerHTML = html;
 }
 
-function sil(i) {
-  dersler.splice(i, 1);
+function sil(i){
+  dersler.splice(i,1);
   kaydet();
   listele();
 }
 
-function edit(i) {
+function edit(i){
   let d = dersler[i];
 
-  document.getElementById("gun").value = d.gun;
-  document.getElementById("saat").value = d.saat;
-  document.getElementById("ders").value = d.ders;
-  document.getElementById("ogretmen").value = d.ogretmen;
-  document.getElementById("sinif").value = d.sinif;
-  document.getElementById("kampus").value = d.kampus;
+  gun.value = d.gun;
+  saat.value = d.saat;
+  ders.value = d.ders;
+  ogretmen.value = d.ogretmen;
+  sinif.value = d.sinif;
+  kampus.value = d.kampus;
 
   editIndex = i;
-  document.getElementById("btn").innerText = "Güncelle";
+  btn.innerText = "Güncelle";
 }
 
-function temizle() {
-  document.getElementById("saat").value = "";
-  document.getElementById("ders").value = "";
-  document.getElementById("ogretmen").value = "";
-  document.getElementById("sinif").value = "";
-  document.getElementById("kampus").value = "";
+function temizle(){
+  saat.value="";
+  ders.value="";
+  ogretmen.value="";
+  sinif.value="";
+  kampus.value="";
 }
 
 listele();
+</script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js");
+}
 </script>
 
 </body>
