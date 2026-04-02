@@ -3,12 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Ders Programı</title>
-
-<!-- PWA -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#3498db">
 
 <style>
 body {
@@ -19,138 +14,99 @@ body {
 
 .container {
   max-width: 400px;
-  margin: 40px auto;
-  background: #fff;
+  margin: 30px auto;
+  background: white;
   padding: 20px;
   border-radius: 15px;
-  text-align: center;
-}
-
-h2 {
-  margin-bottom: 20px;
 }
 
 input, select, button {
   width: 100%;
   margin-top: 10px;
-  padding: 12px;
-  border-radius: 10px;
+  padding: 10px;
+  border-radius: 8px;
   border: 1px solid #ccc;
 }
 
 button {
   background: #3498db;
   color: white;
-  border: none;
   font-weight: bold;
 }
 
 .kart {
-  background: #f9f9f9;
-  padding: 15px;
+  background: #f2f2f2;
+  padding: 10px;
   margin-top: 10px;
   border-radius: 10px;
-  text-align: left;
 }
 
-.kart p {
-  margin: 5px 0;
-}
+.editBtn { background: orange; color:white; padding:5px; border:none; border-radius:6px; }
+.deleteBtn { background: red; color:white; padding:5px; border:none; border-radius:6px; }
 
-.editBtn {
-  background: orange;
-  color: white;
-  border: none;
-  padding: 8px;
-  border-radius: 8px;
-  margin-right: 5px;
-}
-
-.deleteBtn {
-  background: red;
-  color: white;
-  border: none;
-  padding: 8px;
-  border-radius: 8px;
-}
-
-/* MOBİL */
-@media (max-width: 600px) {
-  .container {
-    width: 90%;
-  }
-}
 </style>
 </head>
 
 <body>
 
 <div class="container">
-  <h2>Ders Programı</h2>
+<h2>Ders Programı</h2>
 
-  <select id="gun">
-    <option>Pazartesi</option>
-    <option>Salı</option>
-    <option>Çarşamba</option>
-    <option>Perşembe</option>
-    <option>Cuma</option>
-  </select>
+<input id="ders" placeholder="Ders">
+<input id="ogretmen" placeholder="Öğretmen">
+<input id="sinif" placeholder="Sınıf">
+<input id="kampus" placeholder="Kampüs">
 
-  <input type="time" id="saat">
-  <input type="text" id="ders" placeholder="Ders">
-  <input type="text" id="ogretmen" placeholder="Öğretmen">
-  <input type="text" id="sinif" placeholder="Sınıf">
-  <input type="text" id="kampus" placeholder="Kampüs">
+<button onclick="ekle()">Ders Ekle</button>
+<button onclick="otomatikOlustur()">🤖 Otomatik Program Yap</button>
 
-  <button onclick="ekle()">Ekle / Güncelle</button>
-
-  <div id="liste"></div>
+<div id="liste"></div>
 </div>
 
 <script>
-// VERİLER
+
 let dersler = JSON.parse(localStorage.getItem("dersler")) || [];
 let editIndex = null;
 
+const gunler = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma"];
+const saatler = ["09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00"];
+
 // KAYDET
-function kaydet() {
+function kaydet(){
   localStorage.setItem("dersler", JSON.stringify(dersler));
 }
 
-// LİSTEYİ GÖSTER
-function listeyiGoster() {
+// LİSTE
+function listeyiGoster(){
   const liste = document.getElementById("liste");
   liste.innerHTML = "";
 
-  dersler.forEach((d, i) => {
+  dersler.forEach((d,i)=>{
     liste.innerHTML += `
-      <div class="kart">
-        <p><b>Gün:</b> ${d.gun}</p>
-        <p><b>Saat:</b> ${d.saat}</p>
-        <p><b>Ders:</b> ${d.ders}</p>
-        <p><b>Öğretmen:</b> ${d.ogretmen}</p>
-        <p><b>Sınıf:</b> ${d.sinif}</p>
-        <p><b>Kampüs:</b> ${d.kampus}</p>
+    <div class="kart">
+      <b>${d.ders}</b><br>
+      ${d.gun || "-"} | ${d.saat || "-"}<br>
+      👨‍🏫 ${d.ogretmen} | 🏫 ${d.sinif} | 📍 ${d.kampus}<br><br>
 
-        <button class="editBtn" onclick="duzenle(${i})">Edit</button>
-        <button class="deleteBtn" onclick="sil(${i})">Sil</button>
-      </div>
+      <button class="editBtn" onclick="duzenle(${i})">Edit</button>
+      <button class="deleteBtn" onclick="sil(${i})">Sil</button>
+    </div>
     `;
   });
 }
 
-// EKLE / GÜNCELLE
-function ekle() {
+// EKLE
+function ekle(){
   const veri = {
-    gun: document.getElementById("gun").value,
-    saat: document.getElementById("saat").value,
-    ders: document.getElementById("ders").value,
-    ogretmen: document.getElementById("ogretmen").value,
-    sinif: document.getElementById("sinif").value,
-    kampus: document.getElementById("kampus").value
+    ders: ders.value,
+    ogretmen: ogretmen.value,
+    sinif: sinif.value,
+    kampus: kampus.value,
+    gun: "",
+    saat: ""
   };
 
-  if (editIndex === null) {
+  if(editIndex === null){
     dersler.push(veri);
   } else {
     dersler[editIndex] = veri;
@@ -163,42 +119,75 @@ function ekle() {
 }
 
 // SİL
-function sil(i) {
-  dersler.splice(i, 1);
+function sil(i){
+  dersler.splice(i,1);
   kaydet();
   listeyiGoster();
 }
 
 // EDİT
-function duzenle(i) {
+function duzenle(i){
   const d = dersler[i];
 
-  document.getElementById("gun").value = d.gun;
-  document.getElementById("saat").value = d.saat;
-  document.getElementById("ders").value = d.ders;
-  document.getElementById("ogretmen").value = d.ogretmen;
-  document.getElementById("sinif").value = d.sinif;
-  document.getElementById("kampus").value = d.kampus;
+  ders.value = d.ders;
+  ogretmen.value = d.ogretmen;
+  sinif.value = d.sinif;
+  kampus.value = d.kampus;
 
   editIndex = i;
 }
 
 // TEMİZLE
-function temizle() {
-  document.getElementById("saat").value = "";
-  document.getElementById("ders").value = "";
-  document.getElementById("ogretmen").value = "";
-  document.getElementById("sinif").value = "";
-  document.getElementById("kampus").value = "";
+function temizle(){
+  ders.value="";
+  ogretmen.value="";
+  sinif.value="";
+  kampus.value="";
 }
 
-// SERVICE WORKER (APP GİBİ)
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js");
+// 🔥 ÇAKIŞMA KONTROL
+function uygunMu(gun,saat,ders){
+  return !dersler.some(d =>
+    d.gun === gun &&
+    d.saat === saat &&
+    (
+      d.ogretmen === ders.ogretmen ||
+      d.sinif === ders.sinif
+    )
+  );
+}
+
+// 🤖 OTOMATİK PROGRAM
+function otomatikOlustur(){
+
+  dersler.forEach(d => {
+    d.gun = "";
+    d.saat = "";
+  });
+
+  dersler.forEach(ders => {
+
+    for(let g of gunler){
+      for(let s of saatler){
+
+        if(uygunMu(g,s,ders)){
+          ders.gun = g;
+          ders.saat = s;
+          return;
+        }
+
+      }
+    }
+
+  });
+
+  kaydet();
+  listeyiGoster();
 }
 
 // BAŞLAT
 listeyiGoster();
+
 </script>
 
 </body>
