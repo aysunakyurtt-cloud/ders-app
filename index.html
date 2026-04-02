@@ -5,27 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ders Programı</title>
 
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<!-- Excel kütüphanesi -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <style>
-:root {
-  --bg: #f4f6fb;
-  --card: #ffffff;
-  --text: #333;
-  --primary: #3498db;
-}
-
-.dark {
-  --bg: #121212;
-  --card: #1e1e1e;
-  --text: #fff;
-  --primary: #f1c40f;
-}
-
 body {
   font-family: Arial;
-  background: var(--bg);
-  color: var(--text);
+  background: #f4f6fb;
   margin: 0;
 }
 
@@ -34,62 +20,29 @@ body {
   margin: 20px auto;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.toggle {
-  background: var(--primary);
-  border: none;
-  padding: 10px;
-  border-radius: 10px;
-  color: white;
-}
-
-.selectBox {
-  margin: 15px 0;
-}
-
-select {
+input, select {
   width: 100%;
   padding: 10px;
   margin-top: 10px;
-  border-radius: 10px;
 }
 
-/* TABLE */
 table {
   width: 100%;
   border-collapse: collapse;
-  background: var(--card);
-  border-radius: 10px;
-  overflow: hidden;
+  margin-top: 15px;
 }
 
 th, td {
   border: 1px solid #ddd;
   text-align: center;
-  padding: 10px;
-  font-size: 12px;
+  padding: 8px;
 }
 
 th {
-  background: var(--primary);
+  background: #3498db;
   color: white;
 }
 
-td {
-  height: 60px;
-}
-
-.ders {
-  font-weight: bold;
-  font-size: 13px;
-}
-
-/* SCROLL MOBILE */
 .tableWrap {
   overflow-x: auto;
 }
@@ -100,35 +53,47 @@ td {
 
 <div class="container">
 
-<div class="header">
-  <h2><i class="fa-solid fa-calendar"></i> Ders Programı</h2>
-  <button class="toggle" onclick="temaDegistir()">🌙</button>
-</div>
+<h2>Ders Programı</h2>
 
-<div class="selectBox">
+<input type="file" id="excel" accept=".xlsx,.xls">
+
 <select id="kampus"></select>
 <select id="sinif"></select>
-</div>
 
 <div class="tableWrap">
-<table id="tablo">
-</table>
+<table id="tablo"></table>
 </div>
 
 </div>
 
 <script>
 
-let programlar = [
-  {kampus:"Bahçelievler", sinif:"9A", gun:"Pazartesi", saat:"09:00", ders:"Matematik"},
-  {kampus:"Bahçelievler", sinif:"9A", gun:"Salı", saat:"10:00", ders:"Türkçe"},
-  {kampus:"Bahçelievler", sinif:"9A", gun:"Çarşamba", saat:"11:00", ders:"Fizik"}
-];
+let programlar = [];
 
 const gunler = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma"];
 const saatler = ["09:00","10:00","11:00","12:00","13:00","14:00","15:00"];
 
-// Kampüs
+// 📥 EXCEL OKU
+document.getElementById("excel").addEventListener("change", function(e){
+
+  const file = e.target.files[0];
+  const reader = new FileReader();
+
+  reader.onload = function(e){
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, {type: "array"});
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const json = XLSX.utils.sheet_to_json(sheet);
+
+    programlar = json;
+
+    kampusleriDoldur();
+  };
+
+  reader.readAsArrayBuffer(file);
+});
+
+// Kampüs doldur
 function kampusleriDoldur(){
   const list = [...new Set(programlar.map(p=>p.kampus))];
   kampus.innerHTML = "<option>Kampüs Seç</option>";
@@ -138,7 +103,7 @@ function kampusleriDoldur(){
   });
 }
 
-// Sınıf
+// Sınıf doldur
 function siniflariDoldur(){
   const list = [...new Set(programlar
     .filter(p=>p.kampus===kampus.value)
@@ -151,7 +116,7 @@ function siniflariDoldur(){
   });
 }
 
-// TABLO OLUŞTUR
+// TABLO
 function tabloOlustur(){
 
   const tablo = document.getElementById("tablo");
@@ -177,18 +142,13 @@ function tabloOlustur(){
         p.saat===saat
       );
 
-      html += `<td>${ders ? `<div class="ders">${ders.ders}</div>` : ""}</td>`;
+      html += `<td>${ders ? ders.ders : ""}</td>`;
     });
 
     html += "</tr>";
   });
 
   tablo.innerHTML = html;
-}
-
-// Tema
-function temaDegistir(){
-  document.body.classList.toggle("dark");
 }
 
 // Events
@@ -198,9 +158,6 @@ kampus.onchange = ()=>{
 };
 
 sinif.onchange = tabloOlustur;
-
-// Başlat
-kampusleriDoldur();
 
 </script>
 
