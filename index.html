@@ -51,7 +51,7 @@ button {
 .day {
   color: #FFD700;
   font-weight: bold;
-  margin-top: 10px;
+  margin-top: 15px;
 }
 </style>
 </head>
@@ -104,7 +104,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getFirestore, collection, addDoc, getDocs } 
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// 🔥 SENİN CONFIG
+// 🔥 SENİN FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyBCUrqU0_PrzConRKjlYNoZ7yU38ZPwxfk",
   authDomain: "ders-programi-d79e0.firebaseapp.com",
@@ -117,6 +117,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// 🔥 DERS EKLE (ÇAKIŞMA KONTROLLÜ)
 window.ekle = async function() {
 
   const kampus = document.getElementById("kampus").value;
@@ -125,25 +126,43 @@ window.ekle = async function() {
   const saat = document.getElementById("saat").value;
   const ders = document.getElementById("ders").value;
 
+  const ogretmen = prompt("Öğretmen adı gir:");
+
   const querySnapshot = await getDocs(collection(db, "dersler"));
 
-  let cakisma = false;
+  let sinifCakisma = false;
+  let ogretmenCakisma = false;
 
   querySnapshot.forEach((doc) => {
     const d = doc.data();
 
+    // SINIF ÇAKIŞMA
     if (
       d.kampus === kampus &&
       d.sinif === sinif &&
       d.gun === gun &&
       d.saat === saat
     ) {
-      cakisma = true;
+      sinifCakisma = true;
+    }
+
+    // ÖĞRETMEN ÇAKIŞMA
+    if (
+      d.ogretmen === ogretmen &&
+      d.gun === gun &&
+      d.saat === saat
+    ) {
+      ogretmenCakisma = true;
     }
   });
 
-  if (cakisma) {
-    alert("❌ Bu saatte zaten ders var!");
+  if (sinifCakisma) {
+    alert("❌ Bu sınıfın bu saatte dersi var!");
+    return;
+  }
+
+  if (ogretmenCakisma) {
+    alert("❌ Bu öğretmen aynı saatte başka derste!");
     return;
   }
 
@@ -152,12 +171,14 @@ window.ekle = async function() {
     sinif,
     gun,
     saat,
-    ders
+    ders,
+    ogretmen
   });
 
   alert("✅ Ders eklendi!");
 }
 
+// 📊 PROGRAM GETİR
 window.getir = async function() {
 
   const liste = document.getElementById("liste");
@@ -184,7 +205,9 @@ window.getir = async function() {
     data[gun].forEach(d => {
       liste.innerHTML += `
       <div class="card">
-        ${d.saat} - ${d.ders} (Sınıf ${d.sinif} / ${d.kampus})
+        ${d.saat} - ${d.ders} (${d.ogretmen}) 
+        <br>
+        Sınıf: ${d.sinif} | Kampüs: ${d.kampus}
       </div>`;
     });
   }
