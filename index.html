@@ -5,9 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ders Programı</title>
 
-<!-- Excel kütüphanesi -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
 <style>
 body {
   font-family: Arial;
@@ -20,7 +17,7 @@ body {
   margin: 20px auto;
 }
 
-input, select {
+select {
   width: 100%;
   padding: 10px;
   margin-top: 10px;
@@ -55,8 +52,6 @@ th {
 
 <h2>Ders Programı</h2>
 
-<input type="file" id="excel" accept=".xlsx,.xls">
-
 <select id="kampus"></select>
 <select id="sinif"></select>
 
@@ -73,25 +68,13 @@ let programlar = [];
 const gunler = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma"];
 const saatler = ["09:00","10:00","11:00","12:00","13:00","14:00","15:00"];
 
-// 📥 EXCEL OKU
-document.getElementById("excel").addEventListener("change", function(e){
-
-  const file = e.target.files[0];
-  const reader = new FileReader();
-
-  reader.onload = function(e){
-    const data = new Uint8Array(e.target.result);
-    const workbook = XLSX.read(data, {type: "array"});
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const json = XLSX.utils.sheet_to_json(sheet);
-
-    programlar = json;
-
+// 📥 JSON OKU
+fetch("data.json")
+  .then(res => res.json())
+  .then(data => {
+    programlar = data;
     kampusleriDoldur();
-  };
-
-  reader.readAsArrayBuffer(file);
-});
+  });
 
 // Kampüs doldur
 function kampusleriDoldur(){
