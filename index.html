@@ -82,7 +82,7 @@ td {
 <div class="container">
   <h1>Ders Programı</h1>
 
-  <select id="filterGun" onchange="filtrele()">
+  <select id="filterGun" onchange="listele()">
     <option value="Tümü">Tümü</option>
     <option>Pazartesi</option>
     <option>Salı</option>
@@ -99,7 +99,7 @@ td {
     <option>Cuma</option>
   </select>
 
-  <input id="saat" placeholder="Saat">
+  <input id="saat" placeholder="Saat (örn: 09:00)">
   <input id="ders" placeholder="Ders">
   <input id="ogretmen" placeholder="Öğretmen">
   <input id="sinif" placeholder="Sınıf">
@@ -155,6 +155,10 @@ function ekleGuncelle() {
 }
 
 function listele() {
+
+  // 🔥 SAATE GÖRE SIRALA
+  dersler.sort((a, b) => a.saat.localeCompare(b.saat));
+
   let secili = document.getElementById("filterGun").value;
   let html = "";
 
@@ -197,10 +201,6 @@ function edit(i) {
 
   editIndex = i;
   document.getElementById("btn").innerText = "Güncelle";
-}
-
-function filtrele() {
-  listele();
 }
 
 function temizle() {
