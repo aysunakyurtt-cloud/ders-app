@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Öğretmenler</title>
+
+  <style>
+    body {
+      background:#0b1e33;
+      color:white;
+      font-family:Arial;
+      text-align:center;
+    }
+
+    .box {
+      width:400px;
+      margin:50px auto;
+      background:#132c4a;
+      padding:20px;
+      border-radius:15px;
+    }
+
+    input, button {
+      width:100%;
+      padding:10px;
+      margin-top:10px;
+      border:none;
+      border-radius:10px;
+    }
+
+    button {
+      background:#f1c40f;
+      font-weight:bold;
+      cursor:pointer;
+    }
+
+    .teacher {
+      background:#1e3a5f;
+      padding:10px;
+      margin-top:10px;
+      border-radius:10px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="box">
+  <h2>👨‍🏫 Öğretmen Ekle</h2>
+
+  <input id="name" placeholder="Ad Soyad">
+  <input id="branch" placeholder="Branş">
+
+  <button id="addTeacher">Kaydet</button>
+
+  <h3>Liste</h3>
+  <div id="list"></div>
+</div>
+
+<script type="module" src="teachers.js"></script>
+
+</body>
+</html>
