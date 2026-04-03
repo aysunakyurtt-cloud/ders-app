@@ -32,21 +32,16 @@
     }
 
     button {
+      width: 100%;
       padding: 10px;
-      margin: 5px;
+      margin: 5px 0;
       border: none;
       border-radius: 5px;
       cursor: pointer;
     }
 
-    .login {
-      background: gold;
-    }
-
-    .register {
-      background: gray;
-      color: white;
-    }
+    .login { background: gold; }
+    .register { background: gray; color: white; }
   </style>
 </head>
 
@@ -64,31 +59,27 @@
 
 <script type="module">
 
-// 🔥 Firebase import
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } 
-from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
-// 🔥 SENİN CONFIG (DOĞRU)
+// 🔥 SENİN YENİ CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyAg_jsDkigb3FfQNg4nvU3SVI3fPlzNh0c",
   authDomain: "ders-app-yeni.firebaseapp.com",
   projectId: "ders-app-yeni",
   storageBucket: "ders-app-yeni.firebasestorage.app",
   messagingSenderId: "727261766408",
-  appId: "1:727261766408:web:e2ac1df436f63d607482bd",
-  measurementId: "G-3T8VT9G4CB"
+  appId: "1:727261766408:web:e2ac1df436f63d607482bd"
 };
 
-// 🔥 başlat
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-// 🔥 elementler
-const email = document.getElementById("email");
-const password = document.getElementById("password");
-
-// 🔥 kayıt ol
+// KAYIT
 document.getElementById("registerBtn").onclick = async () => {
   try {
     await createUserWithEmailAndPassword(auth, email.value, password.value);
@@ -98,12 +89,17 @@ document.getElementById("registerBtn").onclick = async () => {
   }
 };
 
-// 🔥 giriş yap
+// GİRİŞ
 document.getElementById("loginBtn").onclick = async () => {
   try {
     await signInWithEmailAndPassword(auth, email.value, password.value);
     alert("🎉 Giriş başarılı!");
-    window.location.href = "main.html";
+
+    // YÖNLENDİR
+    setTimeout(() => {
+      window.location.href = "main.html";
+    }, 500);
+
   } catch (e) {
     alert("❌ " + e.message);
   }
