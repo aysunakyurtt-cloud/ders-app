@@ -1,27 +1,45 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="UTF-8">
-  <title>Ana Sayfa</title>
-</head>
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-<body style="background:#0b1a2b; color:white; text-align:center;">
+const firebaseConfig = {
+  apiKey: "BURAYA_API_KEYİNİ_YAZ",
+  authDomain: "ders-programi-d79e0.firebaseapp.com",
+  projectId: "ders-programi-d79e0",
+  storageBucket: "ders-programi-d79e0.appspot.com",
+  messagingSenderId: "265838203871",
+  appId: "1:265838203871:web:6f1ea40d87f90edeeaea6a"
+};
 
-  <h1>🎉 Giriş Başarılı</h1>
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
-  <button onclick="logout()">Çıkış Yap</button>
+const email = document.getElementById("email");
+const password = document.getElementById("password");
 
-  <script type="module">
-    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+const loginBtn = document.getElementById("loginBtn");
+const registerBtn = document.getElementById("registerBtn");
 
-    const auth = getAuth();
+// KAYIT OL
+registerBtn.addEventListener("click", async () => {
+  try {
+    await createUserWithEmailAndPassword(auth, email.value, password.value);
+    alert("Kayıt başarılı!");
+  } catch (err) {
+    alert(err.message);
+  }
+});
 
-    window.logout = function () {
-      signOut(auth).then(() => {
-        window.location.href = "index.html";
-      });
-    };
-  </script>
-
-</body>
-</html>
+// GİRİŞ YAP
+loginBtn.addEventListener("click", async () => {
+  try {
+    await signInWithEmailAndPassword(auth, email.value, password.value);
+    alert("Giriş başarılı!");
+    window.location.href = "main.html";
+  } catch (err) {
+    alert(err.message);
+  }
+});
