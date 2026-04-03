@@ -2,49 +2,45 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Okul Sistemi PRO</title>
+<title>Okul Sistemi</title>
 
 <style>
-body{margin:0;font-family:Arial;background:#020617;color:white}
-h1{text-align:center;color:#facc15;margin:20px}
+body{
+margin:0;
+font-family:Arial;
+background:#020617;
+color:white;
+}
 
-.container{max-width:1000px;margin:auto;padding:20px}
+h1{
+text-align:center;
+color:#facc15;
+margin:20px;
+}
+
+.box{
+max-width:400px;
+margin:50px auto;
+background:#0f172a;
+padding:20px;
+border-radius:10px;
+}
 
 input,button{
-width:100%;padding:10px;margin-top:10px;border:none;border-radius:8px
+width:100%;
+padding:10px;
+margin-top:10px;
+border:none;
+border-radius:8px;
 }
 
-button{background:#facc15;font-weight:bold;cursor:pointer}
+button{
+background:#facc15;
+font-weight:bold;
+cursor:pointer;
+}
 
 .hidden{display:none}
-
-.card{
-background:#0f172a;
-padding:15px;
-border-radius:10px;
-margin-top:15px
-}
-
-/* PROGRAM */
-.program{
-display:grid;
-grid-template-columns:80px repeat(5,1fr);
-gap:5px;
-margin-top:20px
-}
-
-.hucre{background:#0f172a;padding:10px;min-height:60px;border-radius:6px}
-
-.ders{
-background:#22c55e;
-color:black;
-padding:5px;
-border-radius:6px;
-margin-bottom:5px;
-font-size:12px
-}
-
-.baslik{color:#facc15;text-align:center}
 </style>
 </head>
 
@@ -52,127 +48,86 @@ font-size:12px
 
 <h1>🏫 Okul Sistemi</h1>
 
-<div class="container">
-
-<!-- LOGIN -->
-<div id="loginBox" class="card">
+<div class="box" id="loginBox">
 <h3>🔐 Giriş</h3>
+
 <input id="email" placeholder="Email">
 <input id="password" type="password" placeholder="Şifre">
 
 <button onclick="giris()">Giriş Yap</button>
+<button onclick="kayit()">Kayıt Ol</button>
+
 </div>
 
-<!-- ADMIN -->
-<div id="adminPanel" class="hidden card">
-<h3>👑 Admin Panel</h3>
-<button onclick="programOlustur()">🤖 Program Oluştur</button>
-</div>
-
-<!-- ÖĞRETMEN -->
-<div id="ogretmenPanel" class="hidden card">
-<h3>👨‍🏫 Programım</h3>
-<div id="program"></div>
-</div>
-
+<div class="box hidden" id="panel">
+<h3 id="panelText"></h3>
+<button onclick="cikis()">Çıkış Yap</button>
 </div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } 
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } 
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-import { getFirestore, collection, getDocs } 
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
+// 🔥 SENİN FIREBASE
 const firebaseConfig = {
-  apiKey: "AIzaSy...",
+  apiKey: "AIzaSyBCUrqU0_PrzConRKjlYNoZ7yU38ZPwxfk",
   authDomain: "ders-programi-d79e0.firebaseapp.com",
-  projectId: "ders-programi-d79e0",
+  projectId: "ders-programi-d79e0"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
 
-const gunler=["Pzt","Sal","Çar","Per","Cum"];
-const saatler=["09","10","11","12","13","14"];
+// KAYIT
+window.kayit = async ()=>{
+  try{
+    await createUserWithEmailAndPassword(auth, email.value, password.value);
+    alert("Kayıt başarılı 🔥");
+  }catch(e){
+    alert("Hata: " + e.message);
+  }
+}
 
 // GİRİŞ
 window.giris = async ()=>{
-  await signInWithEmailAndPassword(auth,email.value,password.value);
-};
+  try{
+    await signInWithEmailAndPassword(auth, email.value, password.value);
+  }catch(e){
+    alert("Giriş hatası: " + e.message);
+  }
+}
 
-// OTURUM
-onAuthStateChanged(auth, async (user)=>{
+// ÇIKIŞ
+window.cikis = ()=>{
+  signOut(auth);
+}
 
-  if(!user) return;
+// OTURUM TAKİP
+onAuthStateChanged(auth,(user)=>{
 
-  loginBox.style.display="none";
+  if(user){
+    loginBox.style.display="none";
+    panel.classList.remove("hidden");
 
-  if(user.email==="admin@gmail.com"){
-    adminPanel.classList.remove("hidden");
+    // ROL AYIRMA
+    if(user.email === "admin@gmail.com"){
+      panelText.innerText="👑 Admin Paneline Hoşgeldin";
+    }
+    else if(user.email.includes("ogretmen")){
+      panelText.innerText="👨‍🏫 Öğretmen Paneli";
+    }
+    else{
+      panelText.innerText="👨‍🎓 Öğrenci Paneli";
+    }
+
   }else{
-    ogretmenPanel.classList.remove("hidden");
-    programiGetir(user.email);
+    loginBox.style.display="block";
+    panel.classList.add("hidden");
   }
 
 });
-
-// ÖĞRETMEN PROGRAMI
-async function programiGetir(email){
-
-  let ad = email.split("@")[0]; // ali@gmail.com → ali
-
-  let programData=[];
-
-  const snap = await getDocs(collection(db,"program"));
-
-  snap.forEach(d=>{
-    let veri=d.data();
-
-    if(veri.ogretmen.toLowerCase().includes(ad.toLowerCase())){
-      programData.push(veri);
-    }
-  });
-
-  ciz(programData);
-}
-
-// ÇİZ
-function ciz(program){
-
-  let html=`<div class="program">`;
-
-  html+=`<div></div>`;
-  gunler.forEach(g=> html+=`<div class="baslik">${g}</div>`);
-
-  saatler.forEach(s=>{
-
-    html+=`<div class="baslik">${s}:00</div>`;
-
-    gunler.forEach(g=>{
-
-      let derslerim = program.filter(p=>p.gun===g && p.saat===s);
-
-      html+=`<div class="hucre">`;
-
-      derslerim.forEach(d=>{
-        html+=`<div class="ders">
-        ${d.ders}<br>
-        ${d.sinif}
-        </div>`;
-      });
-
-      html+=`</div>`;
-    });
-  });
-
-  html+=`</div>`;
-
-  document.getElementById("program").innerHTML=html;
-}
 
 </script>
 
