@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Giriş</title>
+<style>
+body {
+    background:#0b1e2d;
+    color:white;
+    font-family:Arial;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+.box {
+    background:#13293d;
+    padding:30px;
+    border-radius:10px;
+    width:300px;
+}
+input {
+    width:100%;
+    padding:10px;
+    margin:10px 0;
+}
+button {
+    width:100%;
+    padding:10px;
+    background:gold;
+    border:none;
+    cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+    <h2>🔐 Giriş</h2>
+
+    <input id="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Şifre">
+
+    <button id="loginBtn">Giriş Yap</button>
+    <button id="registerBtn">Kayıt Ol</button>
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+    apiKey: "SENİN_API_KEY",
+    authDomain: "SENİN_PROJECT.firebaseapp.com",
+    projectId: "SENİN_PROJECT",
+    storageBucket: "SENİN_PROJECT.appspot.com",
+    messagingSenderId: "XXXX",
+    appId: "XXXX"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+const email = document.getElementById("email");
+const password = document.getElementById("password");
+
+// LOGIN
+document.getElementById("loginBtn").onclick = async () => {
+    try {
+        await signInWithEmailAndPassword(auth, email.value, password.value);
+        alert("Giriş başarılı");
+
+        // 🔥 BURASI ÖNEMLİ
+        window.location.href = "main.html";
+
+    } catch (e) {
+        alert(e.message);
+    }
+};
+
+// REGISTER
+document.getElementById("registerBtn").onclick = async () => {
+    try {
+        await createUserWithEmailAndPassword(auth, email.value, password.value);
+        alert("Kayıt başarılı");
+    } catch (e) {
+        alert(e.message);
+    }
+};
+
+</script>
+</body>
+</html>
