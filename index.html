@@ -1,10 +1,110 @@
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Okul Sistemi - Giriş</title>
+
+  <style>
+    body {
+      background: #0b1c2c;
+      color: white;
+      font-family: Arial;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .box {
+      background: #112b44;
+      padding: 30px;
+      border-radius: 10px;
+      width: 300px;
+      text-align: center;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: none;
+    }
+
+    button {
+      padding: 10px;
+      margin: 5px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .login { background: gold; }
+    .register { background: gray; color: white; }
+  </style>
+</head>
+<body>
+
+<div class="box">
+  <h2>🔐 Giriş</h2>
+
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Şifre">
+
+  <button id="loginBtn" class="login">Giriş Yap</button>
+  <button id="registerBtn" class="register">Kayıt Ol</button>
+</div>
+
+<script type="module">
+
+// 🔥 Firebase import
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+// 🔥 SENİN DOĞRU CONFIG
 const firebaseConfig = {
-  apiKey: "AIzaSyBCUrqU0_PrzConRKjlYNoZ7yU38ZPwxfk",
+  apiKey: "AIzaSyBCUrqU0_PrzConRKjIyNoZ7yU38ZPwxkf",
   authDomain: "ders-programi-d79e0.firebaseapp.com",
   projectId: "ders-programi-d79e0",
-  storageBucket: "ders-programi-d79e0.firebasestorage.app",
+  storageBucket: "ders-programi-d79e0.appspot.com",
   messagingSenderId: "265838203871",
-  appId: "1:265838203871:web:6f1ea40d87f90edeeaea6a",
-  measurementId: "G-5GQW5SG67D"
+  appId: "1:265838203871:web:6f1ea40d87f90deeeae6a"
 };
+
+// 🔥 başlat
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+// 🔥 elementler
+const email = document.getElementById("email");
+const password = document.getElementById("password");
+
+// 🔥 kayıt
+document.getElementById("registerBtn").onclick = async () => {
+  try {
+    await createUserWithEmailAndPassword(auth, email.value, password.value);
+    alert("Kayıt başarılı!");
+  } catch (e) {
+    alert(e.message);
+  }
+};
+
+// 🔥 giriş
+document.getElementById("loginBtn").onclick = async () => {
+  try {
+    await signInWithEmailAndPassword(auth, email.value, password.value);
+    alert("Giriş başarılı!");
+    window.location.href = "main.html";
+  } catch (e) {
+    alert(e.message);
+  }
+};
+
+</script>
+
+</body>
+</html>
