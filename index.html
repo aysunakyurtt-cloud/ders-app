@@ -2,14 +2,13 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Okul Yönetim Sistemi</title>
+<title>Okul Sistemi PRO</title>
 
 <style>
 body{margin:0;font-family:Arial;background:#020617;color:white}
-
 h1{text-align:center;color:#facc15;margin:20px}
 
-.container{max-width:1100px;margin:auto;padding:20px}
+.container{max-width:1000px;margin:auto;padding:20px}
 
 input,button{
 width:100%;padding:10px;margin-top:10px;border:none;border-radius:8px
@@ -25,27 +24,6 @@ padding:15px;
 border-radius:10px;
 margin-top:15px
 }
-
-/* PROGRAM */
-.program{
-display:grid;
-grid-template-columns:80px repeat(5,1fr);
-gap:5px;
-margin-top:20px
-}
-
-.hucre{background:#0f172a;padding:10px;min-height:60px;border-radius:6px}
-
-.ders{
-background:#22c55e;
-color:black;
-padding:5px;
-border-radius:6px;
-margin-bottom:5px;
-font-size:12px
-}
-
-.baslik{color:#facc15;text-align:center}
 </style>
 </head>
 
@@ -57,155 +35,78 @@ font-size:12px
 
 <!-- LOGIN -->
 <div id="loginBox" class="card">
-<h3>🔐 Giriş</h3>
-<input id="kullanici" placeholder="Kullanıcı adı">
-<input id="sifre" type="password" placeholder="Şifre">
+<h3>🔐 Giriş / Kayıt</h3>
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Şifre">
+
+<button onclick="kayit()">Kayıt Ol</button>
 <button onclick="giris()">Giriş Yap</button>
 </div>
 
-<!-- ADMIN PANEL -->
-<div id="adminPanel" class="hidden">
-
-<div class="card">
-<h3>👨‍🏫 Öğretmen Ekle</h3>
-<input id="t_ad" placeholder="Ad">
-<input id="t_brans" placeholder="Branş">
-<button onclick="ogretmenEkle()">Ekle</button>
+<!-- ADMIN -->
+<div id="adminPanel" class="hidden card">
+<h3>👑 Admin Panel</h3>
+<button onclick="alert('Buraya yönetim eklenecek')">Yönetim</button>
 </div>
 
-<div class="card">
-<h3>📚 Ders Planı</h3>
-<input id="sinif" placeholder="Sınıf (1-A)">
-<input id="d_ad" placeholder="Ders">
-<input id="d_saat" type="number" placeholder="Saat">
-<button onclick="dersEkle()">Ekle</button>
-</div>
-
-<div class="card">
-<button onclick="olustur()">🤖 Program Oluştur</button>
+<!-- ÖĞRETMEN -->
+<div id="ogretmenPanel" class="hidden card">
+<h3>👨‍🏫 Öğretmen Paneli</h3>
+<button onclick="alert('Programın burada')">Programımı Gör</button>
 </div>
 
 </div>
 
-<!-- PROGRAM (HERKES GÖRÜR) -->
-<div id="program"></div>
+<script type="module">
 
-</div>
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBCUrqU0_PrzConRKjlYNoZ7yU38ZPwxfk",
+  authDomain: "ders-programi-d79e0.firebaseapp.com",
+  projectId: "ders-programi-d79e0",
+};
 
-let ogretmenler=[];
-let dersler=[];
-let program=[];
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
-const gunler=["Pzt","Sal","Çar","Per","Cum"];
-const saatler=["09","10","11","12","13","14"];
+// KAYIT
+window.kayit = async ()=>{
+  try{
+    await createUserWithEmailAndPassword(auth,email.value,password.value);
+    alert("Kayıt başarılı");
+  }catch(e){
+    alert(e.message);
+  }
+};
 
-// LOGIN
-function giris(){
+// GİRİŞ
+window.giris = async ()=>{
+  try{
+    await signInWithEmailAndPassword(auth,email.value,password.value);
+    alert("Giriş başarılı");
+  }catch(e){
+    alert(e.message);
+  }
+};
 
-  if(kullanici.value==="admin" && sifre.value==="1234"){
+// OTURUM TAKİP
+onAuthStateChanged(auth,(user)=>{
+  if(user){
+
     loginBox.style.display="none";
-    adminPanel.classList.remove("hidden");
-    alert("Admin giriş başarılı");
-  }else{
-    alert("Hatalı giriş");
-  }
 
-}
-
-// ÖĞRETMEN
-function ogretmenEkle(){
-  ogretmenler.push({
-    ad:t_ad.value,
-    brans:t_brans.value
-  });
-  alert("Eklendi");
-}
-
-// DERS
-function dersEkle(){
-  dersler.push({
-    sinif:sinif.value,
-    ders:d_ad.value,
-    saat:Number(d_saat.value)
-  });
-  alert("Eklendi");
-}
-
-// PROGRAM
-function olustur(){
-
-  program=[];
-
-  for(let d of dersler){
-
-    let ogretmen = ogretmenler.find(o=>o.brans===d.ders);
-    if(!ogretmen) continue;
-
-    let kalan=d.saat;
-
-    for(let g of gunler){
-      for(let s of saatler){
-
-        if(kalan<=0) break;
-
-        let dolu = program.find(p=>p.gun===g && p.saat===s && p.sinif===d.sinif);
-        let cakisma = program.find(p=>p.gun===g && p.saat===s && p.ogretmen===ogretmen.ad);
-
-        if(!dolu && !cakisma){
-
-          program.push({
-            sinif:d.sinif,
-            gun:g,
-            saat:s,
-            ders:d.ders,
-            ogretmen:ogretmen.ad
-          });
-
-          kalan--;
-        }
-      }
+    // ADMIN kontrol (email ile)
+    if(user.email==="admin@gmail.com"){
+      adminPanel.classList.remove("hidden");
+    }else{
+      ogretmenPanel.classList.remove("hidden");
     }
+
   }
-
-  ciz();
-}
-
-// ÇİZ
-function ciz(){
-
-  let html=`<div class="program">`;
-
-  html+=`<div></div>`;
-  gunler.forEach(g=> html+=`<div class="baslik">${g}</div>`);
-
-  saatler.forEach(s=>{
-
-    html+=`<div class="baslik">${s}:00</div>`;
-
-    gunler.forEach(g=>{
-
-      let derslerim = program.filter(p=>p.gun===g && p.saat===s);
-
-      html+=`<div class="hucre">`;
-
-      derslerim.forEach(d=>{
-        html+=`<div class="ders">
-        ${d.sinif}<br>
-        ${d.ders}<br>
-        ${d.ogretmen}
-        </div>`;
-      });
-
-      html+=`</div>`;
-    });
-  });
-
-  html+=`</div>`;
-
-  document.getElementById("program").innerHTML=html;
-}
+});
 
 </script>
 
