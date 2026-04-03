@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Derslerim</title>
+<title>Dersler</title>
 
 <style>
 body {
@@ -26,14 +26,8 @@ button {
   cursor: pointer;
 }
 
-.add {
-  background: gold;
-}
-
-.logout {
-  background: red;
-  color: white;
-}
+.add { background: gold; }
+.logout { background: red; color: white; }
 
 ul {
   list-style: none;
@@ -52,7 +46,7 @@ li {
 
 <body>
 
-<h2>🎉 Hoşgeldin</h2>
+<h2>📚 Derslerim</h2>
 <p id="userEmail"></p>
 
 <input id="lessonInput" placeholder="Ders adı gir">
@@ -83,7 +77,6 @@ import {
   where
 } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-// 🔥 SENİN YENİ CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyAg_jsDkigb3FfQNg4nvU3SVI3fPlzNh0c",
   authDomain: "ders-app-yeni.firebaseapp.com",
@@ -93,7 +86,6 @@ const firebaseConfig = {
   appId: "1:727261766408:web:e2ac1df436f63d607482bd"
 };
 
-// 🔥 Başlat
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -103,7 +95,6 @@ const input = document.getElementById("lessonInput");
 
 let currentUser = null;
 
-// 🔐 Kullanıcı kontrol
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "login.html";
@@ -116,7 +107,6 @@ onAuthStateChanged(auth, async (user) => {
   loadLessons();
 });
 
-// 📥 Dersleri yükle (SADECE KENDİ DERSLERİ)
 async function loadLessons() {
   list.innerHTML = "";
 
@@ -139,7 +129,6 @@ async function loadLessons() {
   });
 }
 
-// ➕ Ders ekle
 document.getElementById("addBtn").onclick = async () => {
   if (input.value.trim() === "") return;
 
@@ -152,13 +141,11 @@ document.getElementById("addBtn").onclick = async () => {
   loadLessons();
 };
 
-// ❌ Ders sil
 window.deleteLesson = async (id) => {
   await deleteDoc(doc(db, "lessons", id));
   loadLessons();
 };
 
-// 🚪 Çıkış
 document.getElementById("logoutBtn").onclick = async () => {
   await signOut(auth);
   window.location.href = "login.html";
