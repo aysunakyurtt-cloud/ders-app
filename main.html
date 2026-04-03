@@ -13,7 +13,7 @@ body {
 }
 
 .container {
-  margin-top: 50px;
+  margin-top: 30px;
 }
 
 .card {
@@ -24,9 +24,16 @@ body {
   border-radius: 10px;
 }
 
+input {
+  padding: 10px;
+  margin: 5px;
+  border-radius: 5px;
+  border: none;
+}
+
 button {
   padding: 10px;
-  margin-top: 10px;
+  margin: 5px;
   border: none;
   border-radius: 5px;
   background: gold;
@@ -40,6 +47,18 @@ button {
 <div class="container">
   <h1>📚 Ders Programım</h1>
 
+  <!-- EKLEME ALANI -->
+  <div>
+    <input id="ad" placeholder="Ders adı">
+    <input id="gun" placeholder="Gün">
+    <input id="saat" placeholder="Saat">
+    <br>
+    <button onclick="addLesson()">Ders Ekle</button>
+  </div>
+
+  <hr>
+
+  <!-- LİSTE -->
   <div id="list"></div>
 
   <button onclick="logout()">Çıkış Yap</button>
@@ -49,9 +68,9 @@ button {
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-// 🔥 senin config
+// 🔥 config
 const firebaseConfig = {
   apiKey: "AIzaSyAg_jsDkigb3FfQNg4nvU3SVI3fPlzNh0c",
   authDomain: "ders-app-yeni.firebaseapp.com",
@@ -74,7 +93,7 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-// 📥 dersleri çek
+// 📥 listele
 async function loadLessons() {
   const list = document.getElementById("list");
   list.innerHTML = "";
@@ -93,6 +112,33 @@ async function loadLessons() {
     `;
   });
 }
+
+// ➕ EKLEME
+window.addLesson = async () => {
+  const ad = document.getElementById("ad").value;
+  const gun = document.getElementById("gun").value;
+  const saat = document.getElementById("saat").value;
+
+  if (!ad || !gun || !saat) {
+    alert("Hepsini doldur!");
+    return;
+  }
+
+  await addDoc(collection(db, "dersler"), {
+    ad,
+    gun,
+    saat
+  });
+
+  alert("✅ Ders eklendi!");
+
+  // temizle
+  document.getElementById("ad").value = "";
+  document.getElementById("gun").value = "";
+  document.getElementById("saat").value = "";
+
+  loadLessons();
+};
 
 // 🚪 çıkış
 window.logout = () => {
