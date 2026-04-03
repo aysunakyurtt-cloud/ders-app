@@ -9,33 +9,47 @@
       background: #0b1c2c;
       color: white;
       font-family: Arial;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .box {
       text-align: center;
-      padding-top: 100px;
     }
 
     button {
       padding: 10px 20px;
-      background: gold;
       border: none;
       border-radius: 5px;
+      background: gold;
       cursor: pointer;
+      margin-top: 20px;
     }
   </style>
 </head>
 
 <body>
 
-<h1>🎉 Hoşgeldin</h1>
-<p id="userEmail"></p>
+<div class="box">
+  <h1>🎉 Hoşgeldin</h1>
+  <p id="userEmail"></p>
 
-<button id="logoutBtn">Çıkış Yap</button>
+  <button id="logoutBtn">Çıkış Yap</button>
+</div>
 
 <script type="module">
 
+// 🔥 Firebase import
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } 
-from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
+// 🔥 SENİN CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyAg_jsDkigb3FfQNg4nvU3SVI3fPlzNh0c",
   authDomain: "ders-app-yeni.firebaseapp.com",
@@ -45,22 +59,25 @@ const firebaseConfig = {
   appId: "1:727261766408:web:e2ac1df436f63d607482bd"
 };
 
+// 🔥 başlat
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-// kullanıcı kontrol
+// 🔐 GİRİŞ KONTROLÜ
 onAuthStateChanged(auth, (user) => {
   if (user) {
+    // giriş yapılmış
     document.getElementById("userEmail").innerText = user.email;
   } else {
-    window.location.href = "index.html";
+    // giriş yok → login sayfasına at
+    window.location.href = "login.html";
   }
 });
 
-// çıkış
-document.getElementById("logoutBtn").onclick = () => {
-  signOut(auth);
-  window.location.href = "index.html";
+// 🚪 ÇIKIŞ
+document.getElementById("logoutBtn").onclick = async () => {
+  await signOut(auth);
+  window.location.href = "login.html";
 };
 
 </script>
