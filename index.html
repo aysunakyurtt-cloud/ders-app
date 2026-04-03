@@ -2,127 +2,146 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Akıllı Ders Programı</title>
+<title>PRO Ders Programı</title>
 
 <style>
-body{margin:0;font-family:Arial;background:#020617;color:white;}
-h1{text-align:center;color:#facc15;margin:20px;}
+body{margin:0;background:#020617;color:white;font-family:Arial}
+h1{text-align:center;color:#facc15}
 
-.form{
-max-width:600px;margin:20px auto;background:#0f172a;
-padding:20px;border-radius:10px;
+.container{max-width:1200px;margin:auto;padding:20px}
+
+.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+
+.box{
+background:#0f172a;
+padding:15px;
+border-radius:10px;
 }
 
 input,select,button{
-width:100%;padding:10px;margin-top:10px;border-radius:8px;border:none;
+width:100%;padding:10px;margin-top:10px;border:none;border-radius:8px
 }
 
-button{background:#facc15;font-weight:bold;cursor:pointer;}
+button{background:#facc15;font-weight:bold;cursor:pointer}
 
 .program{
 display:grid;
-grid-template-columns:80px repeat(6,1fr);
-gap:10px;padding:20px;
+grid-template-columns:80px repeat(5,1fr);
+gap:5px;margin-top:20px
 }
 
-.saat{text-align:center;color:#94a3b8;}
-.gun{text-align:right;padding-right:10px;color:#facc15;}
-
-.hucre{min-height:70px;background:#0f172a;border-radius:8px;}
+.hucre{background:#0f172a;padding:10px;min-height:60px;border-radius:6px}
 
 .ders{
-background:#facc15;color:black;padding:10px;border-radius:10px;
-font-weight:bold;cursor:grab;
+background:#22c55e;
+color:black;
+padding:5px;
+border-radius:6px;
+margin-bottom:5px;
+font-size:12px
 }
-</style>
-</head>
 
+.baslik{color:#facc15;text-align:center}
+</style>
+
+</head>
 <body>
 
-<h1>🤖 Akıllı Ders Programı</h1>
+<h1>🏫 PRO Ders Programı Sistemi</h1>
 
-<div class="form">
+<div class="container">
 
-<input id="ders" placeholder="Ders (Matematik)">
-<input id="ogretmen" placeholder="Öğretmen (Ali Hoca)">
-<input id="adet" type="number" placeholder="Haftalık saat sayısı">
+<div class="grid">
 
-<button onclick="dersEkle()">Ders Ekle</button>
-<button onclick="otomatik()">🤖 Otomatik Program</button>
+<!-- ÖĞRETMEN -->
+<div class="box">
+<h3>👨‍🏫 Öğretmen</h3>
+<input id="t_ad" placeholder="Ad">
+<input id="t_brans" placeholder="Branş">
+<button onclick="ogretmenEkle()">Ekle</button>
+</div>
+
+<!-- DERS -->
+<div class="box">
+<h3>📚 Ders (Sınıf)</h3>
+<input id="sinif" placeholder="Sınıf (1-A)">
+<input id="d_ad" placeholder="Ders">
+<input id="d_saat" type="number" placeholder="Saat">
+<button onclick="dersEkle()">Ekle</button>
+</div>
+
+<!-- OTOMATİK -->
+<div class="box">
+<h3>🤖 Sistem</h3>
+<button onclick="olustur()">Program Oluştur</button>
+<button onclick="temizle()">Temizle</button>
+</div>
 
 </div>
 
 <div id="program"></div>
 
-<script type="module">
+</div>
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+<script>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBCUrqU0_PrzConRKjlYNoZ7yU38ZPwxfk",
-  authDomain: "ders-programi-d79e0.firebaseapp.com",
-  projectId: "ders-programi-d79e0",
-};
+let ogretmenler=[];
+let dersler=[];
+let program=[];
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const gunler=["Pzt","Sal","Çar","Per","Cum"];
+const saatler=["09","10","11","12","13","14"];
 
-let dersler = [];
-let programData = [];
-
-const gunler=["Pazartesi","Salı","Çarşamba","Perşembe","Cuma"];
-const saatler=["09:00","10:00","11:00","12:00","13:00","14:00"];
-
-// DERS EKLE
-window.dersEkle = async function(){
-  await addDoc(collection(db,"dersler"),{
-    ders: ders.value,
-    ogretmen: ogretmen.value,
-    adet: Number(adet.value)
+// ÖĞRETMEN EKLE
+function ogretmenEkle(){
+  ogretmenler.push({
+    ad:t_ad.value,
+    brans:t_brans.value
   });
-
-  alert("Ders eklendi");
+  alert("Eklendi");
 }
 
-// OTOMATİK PROGRAM
-window.otomatik = async function(){
-
-  // eski programı sil
-  const eski = await getDocs(collection(db,"program"));
-  eski.forEach(async d=>{
-    await deleteDoc(doc(db,"program",d.id));
+// DERS EKLE
+function dersEkle(){
+  dersler.push({
+    sinif:sinif.value,
+    ders:d_ad.value,
+    saat:Number(d_saat.value)
   });
+  alert("Eklendi");
+}
 
-  const dersSnap = await getDocs(collection(db,"dersler"));
-  dersler = [];
-  dersSnap.forEach(d=>{
-    dersler.push(d.data());
-  });
+// OTOMATİK OLUŞTUR
+function olustur(){
 
-  let yerlesim = [];
+  program=[];
 
   for(let d of dersler){
 
-    let kalan = d.adet;
+    let ogretmen = ogretmenler.find(o=>o.brans===d.ders);
+    if(!ogretmen) continue;
 
-    for(let gun of gunler){
-      for(let saat of saatler){
+    let kalan = d.saat;
+
+    for(let g of gunler){
+      for(let s of saatler){
 
         if(kalan<=0) break;
 
         // SLOT DOLU MU
-        let dolu = yerlesim.find(x=>x.gun===gun && x.saat===saat);
+        let dolu = program.find(p=>p.gun===g && p.saat===s && p.sinif===d.sinif);
 
         // ÖĞRETMEN ÇAKIŞMA
-        let cakisma = yerlesim.find(x=>x.ogretmen===d.ogretmen && x.saat===saat);
+        let cakisma = program.find(p=>p.gun===g && p.saat===s && p.ogretmen===ogretmen.ad);
 
         if(!dolu && !cakisma){
 
-          yerlesim.push({
-            gun,saat,
+          program.push({
+            sinif:d.sinif,
+            gun:g,
+            saat:s,
             ders:d.ders,
-            ogretmen:d.ogretmen
+            ogretmen:ogretmen.ad
           });
 
           kalan--;
@@ -131,24 +150,12 @@ window.otomatik = async function(){
     }
   }
 
-  // FIREBASE'e kaydet
-  for(let p of yerlesim){
-    await addDoc(collection(db,"program"),p);
-  }
-
-  alert("Program oluşturuldu 🔥");
-  veriGetir();
+  ciz();
 }
 
-// VERİ ÇEK
-async function veriGetir(){
-  programData = [];
-
-  const snap = await getDocs(collection(db,"program"));
-  snap.forEach(d=>{
-    programData.push(d.data());
-  });
-
+// TEMİZLE
+function temizle(){
+  program=[];
   ciz();
 }
 
@@ -158,31 +165,34 @@ function ciz(){
   let html=`<div class="program">`;
 
   html+=`<div></div>`;
-  saatler.forEach(s=> html+=`<div class="saat">${s}</div>`);
+  gunler.forEach(g=> html+=`<div class="baslik">${g}</div>`);
 
-  gunler.forEach(gun=>{
-    html+=`<div class="gun">${gun}</div>`;
+  saatler.forEach(s=>{
 
-    saatler.forEach(saat=>{
+    html+=`<div class="baslik">${s}:00</div>`;
 
-      let ders = programData.find(p=>p.gun===gun && p.saat===saat);
+    gunler.forEach(g=>{
 
-      if(ders){
-        html+=`<div class="hucre">
-        <div class="ders">${ders.ders}<br><small>${ders.ogretmen}</small></div>
+      let derslerim = program.filter(p=>p.gun===g && p.saat===s);
+
+      html+=`<div class="hucre">`;
+
+      derslerim.forEach(d=>{
+        html+=`<div class="ders">
+        ${d.sinif}<br>
+        ${d.ders}<br>
+        ${d.ogretmen}
         </div>`;
-      }else{
-        html+=`<div class="hucre"></div>`;
-      }
+      });
 
+      html+=`</div>`;
     });
   });
 
   html+=`</div>`;
-  document.getElementById("program").innerHTML = html;
-}
 
-veriGetir();
+  document.getElementById("program").innerHTML=html;
+}
 
 </script>
 
