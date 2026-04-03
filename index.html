@@ -1,22 +1,44 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <title>Giriş</title>
+<meta charset="UTF-8">
+<title>Ana Sayfa</title>
+
+<style>
+body{
+  background:#0b1a2b;
+  color:white;
+  text-align:center;
+  margin-top:100px;
+}
+button{
+  padding:10px 20px;
+  background:gold;
+  border:none;
+  border-radius:5px;
+  cursor:pointer;
+}
+</style>
+
 </head>
 
-<body style="background:#0b1a2b; color:white; text-align:center; font-family:sans-serif;">
+<body>
 
-  <h1>🔐 Giriş</h1>
+<h1>🎉 Giriş Başarılı</h1>
 
-  <input id="email" placeholder="Email"><br><br>
-  <input id="password" type="password" placeholder="Şifre"><br><br>
+<button onclick="logout()">Çıkış Yap</button>
 
-  <button id="loginBtn">Giriş Yap</button>
-  <button id="registerBtn">Kayıt Ol</button>
+<script type="module">
+import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-  <!-- BURASI ÇOK ÖNEMLİ -->
-  <script type="module" src="app.js"></script>
+const auth = getAuth();
+
+window.logout = function(){
+  signOut(auth).then(()=>{
+    window.location.href="index.html";
+  });
+}
+</script>
 
 </body>
 </html>
