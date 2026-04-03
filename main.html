@@ -1,27 +1,44 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <title>Ana Sayfa</title>
+<meta charset="UTF-8">
+<title>Ana Sayfa</title>
+
+<style>
+body{
+  background:#0b1a2b;
+  color:white;
+  text-align:center;
+  margin-top:100px;
+}
+button{
+  padding:10px 20px;
+  background:gold;
+  border:none;
+  border-radius:5px;
+  cursor:pointer;
+}
+</style>
+
 </head>
 
-<body style="background:#0b1a2b; color:white; text-align:center;">
+<body>
 
-  <h1>🎉 Giriş Başarılı</h1>
+<h1>🎉 Giriş Başarılı</h1>
 
-  <button onclick="logout()">Çıkış Yap</button>
+<button onclick="logout()">Çıkış Yap</button>
 
-  <script type="module">
-    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+<script type="module">
+import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    const auth = getAuth();
+const auth = getAuth();
 
-    window.logout = function () {
-      signOut(auth).then(() => {
-        window.location.href = "index.html";
-      });
-    };
-  </script>
+window.logout = function(){
+  signOut(auth).then(()=>{
+    window.location.href="index.html";
+  });
+}
+</script>
 
 </body>
 </html>
