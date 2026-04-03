@@ -2,134 +2,141 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Ders Programı PRO</title>
+<title>Akıllı Ders Programı</title>
 
 <style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:#020617;
-  color:white;
-}
-
-h1{
-  text-align:center;
-  color:#facc15;
-  margin:20px;
-}
+body{margin:0;font-family:Arial;background:#020617;color:white;}
+h1{text-align:center;color:#facc15;margin:20px;}
 
 .form{
-  max-width:600px;
-  margin:20px auto;
-  background:#0f172a;
-  padding:20px;
-  border-radius:10px;
+max-width:600px;margin:20px auto;background:#0f172a;
+padding:20px;border-radius:10px;
 }
 
 input,select,button{
-  width:100%;
-  padding:10px;
-  margin-top:10px;
-  border-radius:8px;
-  border:none;
+width:100%;padding:10px;margin-top:10px;border-radius:8px;border:none;
 }
 
-button{
-  background:#facc15;
-  font-weight:bold;
-  cursor:pointer;
-}
+button{background:#facc15;font-weight:bold;cursor:pointer;}
 
 .program{
-  display:grid;
-  grid-template-columns: 80px repeat(6, 1fr);
-  gap:10px;
-  padding:20px;
+display:grid;
+grid-template-columns:80px repeat(6,1fr);
+gap:10px;padding:20px;
 }
 
-.saat{
-  text-align:center;
-  color:#94a3b8;
-}
+.saat{text-align:center;color:#94a3b8;}
+.gun{text-align:right;padding-right:10px;color:#facc15;}
 
-.gun{
-  text-align:right;
-  padding-right:10px;
-  color:#facc15;
-}
-
-.hucre{
-  min-height:70px;
-  background:#0f172a;
-  border-radius:8px;
-}
+.hucre{min-height:70px;background:#0f172a;border-radius:8px;}
 
 .ders{
-  background:#facc15;
-  color:black;
-  padding:10px;
-  border-radius:10px;
-  font-weight:bold;
-  cursor:grab;
+background:#facc15;color:black;padding:10px;border-radius:10px;
+font-weight:bold;cursor:grab;
 }
 </style>
-
 </head>
+
 <body>
 
-<h1>📅 Ders Programı</h1>
+<h1>🤖 Akıllı Ders Programı</h1>
 
 <div class="form">
-<select id="gun">
-<option>Pazartesi</option>
-<option>Salı</option>
-<option>Çarşamba</option>
-<option>Perşembe</option>
-<option>Cuma</option>
-</select>
 
-<input id="saat" type="time">
-<input id="ders" placeholder="Ders">
-<input id="ogretmen" placeholder="Öğretmen">
+<input id="ders" placeholder="Ders (Matematik)">
+<input id="ogretmen" placeholder="Öğretmen (Ali Hoca)">
+<input id="adet" type="number" placeholder="Haftalık saat sayısı">
 
-<button onclick="ekle()">Dersi Kaydet</button>
+<button onclick="dersEkle()">Ders Ekle</button>
+<button onclick="otomatik()">🤖 Otomatik Program</button>
+
 </div>
 
 <div id="program"></div>
 
-<!-- FIREBASE -->
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// SENİN CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyBCUrqU0_PrzConRKjlYNoZ7yU38ZPwxfk",
   authDomain: "ders-programi-d79e0.firebaseapp.com",
   projectId: "ders-programi-d79e0",
-  storageBucket: "ders-programi-d79e0.firebasestorage.app",
-  messagingSenderId: "265838203871",
-  appId: "1:265838203871:web:6f1ea40d87f90edeeaea6a"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+let dersler = [];
 let programData = [];
-let dragged = null;
 
-// EKLE
-window.ekle = async function(){
+const gunler=["Pazartesi","Salı","Çarşamba","Perşembe","Cuma"];
+const saatler=["09:00","10:00","11:00","12:00","13:00","14:00"];
 
+// DERS EKLE
+window.dersEkle = async function(){
   await addDoc(collection(db,"dersler"),{
-    gun: gun.value,
-    saat: saat.value,
     ders: ders.value,
-    ogretmen: ogretmen.value
+    ogretmen: ogretmen.value,
+    adet: Number(adet.value)
   });
 
-  alert("Kaydedildi 🔥");
+  alert("Ders eklendi");
+}
+
+// OTOMATİK PROGRAM
+window.otomatik = async function(){
+
+  // eski programı sil
+  const eski = await getDocs(collection(db,"program"));
+  eski.forEach(async d=>{
+    await deleteDoc(doc(db,"program",d.id));
+  });
+
+  const dersSnap = await getDocs(collection(db,"dersler"));
+  dersler = [];
+  dersSnap.forEach(d=>{
+    dersler.push(d.data());
+  });
+
+  let yerlesim = [];
+
+  for(let d of dersler){
+
+    let kalan = d.adet;
+
+    for(let gun of gunler){
+      for(let saat of saatler){
+
+        if(kalan<=0) break;
+
+        // SLOT DOLU MU
+        let dolu = yerlesim.find(x=>x.gun===gun && x.saat===saat);
+
+        // ÖĞRETMEN ÇAKIŞMA
+        let cakisma = yerlesim.find(x=>x.ogretmen===d.ogretmen && x.saat===saat);
+
+        if(!dolu && !cakisma){
+
+          yerlesim.push({
+            gun,saat,
+            ders:d.ders,
+            ogretmen:d.ogretmen
+          });
+
+          kalan--;
+        }
+      }
+    }
+  }
+
+  // FIREBASE'e kaydet
+  for(let p of yerlesim){
+    await addDoc(collection(db,"program"),p);
+  }
+
+  alert("Program oluşturuldu 🔥");
   veriGetir();
 }
 
@@ -137,12 +144,9 @@ window.ekle = async function(){
 async function veriGetir(){
   programData = [];
 
-  const querySnapshot = await getDocs(collection(db,"dersler"));
-  querySnapshot.forEach((docSnap) => {
-    programData.push({
-      id: docSnap.id,
-      ...docSnap.data()
-    });
+  const snap = await getDocs(collection(db,"program"));
+  snap.forEach(d=>{
+    programData.push(d.data());
   });
 
   ciz();
@@ -151,80 +155,33 @@ async function veriGetir(){
 // ÇİZ
 function ciz(){
 
-  const gunler=["Pazartesi","Salı","Çarşamba","Perşembe","Cuma"];
-  const saatler=["09:00","10:00","11:00","12:00","13:00","14:00"];
+  let html=`<div class="program">`;
 
-  let html = `<div class="program">`;
-
-  html += `<div></div>`;
-  saatler.forEach(s=>{
-    html += `<div class="saat">${s}</div>`;
-  });
+  html+=`<div></div>`;
+  saatler.forEach(s=> html+=`<div class="saat">${s}</div>`);
 
   gunler.forEach(gun=>{
-    html += `<div class="gun">${gun}</div>`;
+    html+=`<div class="gun">${gun}</div>`;
 
     saatler.forEach(saat=>{
-      html += `<div class="hucre" 
-        ondragover="allowDrop(event)" 
-        ondrop="drop(event,'${gun}','${saat}')">
-      `;
 
-      let ders = programData.find(p => p.gun===gun && p.saat===saat);
+      let ders = programData.find(p=>p.gun===gun && p.saat===saat);
 
       if(ders){
-        html += `
-          <div class="ders"
-            draggable="true"
-            ondragstart="drag(event)"
-            data-id="${ders.id}">
-            ${ders.ders}<br>
-            <small>${ders.ogretmen}</small>
-          </div>`;
+        html+=`<div class="hucre">
+        <div class="ders">${ders.ders}<br><small>${ders.ogretmen}</small></div>
+        </div>`;
+      }else{
+        html+=`<div class="hucre"></div>`;
       }
 
-      html += `</div>`;
     });
   });
 
-  html += `</div>`;
+  html+=`</div>`;
   document.getElementById("program").innerHTML = html;
 }
 
-// DRAG
-window.drag = function(e){
-  dragged = e.target.dataset.id;
-}
-
-// DROP
-window.allowDrop = function(e){
-  e.preventDefault();
-}
-
-window.drop = async function(e,newGun,newSaat){
-  e.preventDefault();
-
-  let ders = programData.find(p => p.id===dragged);
-
-  // çakışma kontrol
-  let dolu = programData.find(p =>
-    p.gun===newGun && p.saat===newSaat
-  );
-
-  if(dolu){
-    alert("Bu saat dolu!");
-    return;
-  }
-
-  await updateDoc(doc(db,"dersler",ders.id),{
-    gun:newGun,
-    saat:newSaat
-  });
-
-  veriGetir();
-}
-
-// SAYFA AÇILINCA
 veriGetir();
 
 </script>
