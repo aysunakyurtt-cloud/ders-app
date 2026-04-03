@@ -2,32 +2,36 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>PRO Ders Programı</title>
+<title>Okul Yönetim Sistemi</title>
 
 <style>
-body{margin:0;background:#020617;color:white;font-family:Arial}
-h1{text-align:center;color:#facc15}
+body{margin:0;font-family:Arial;background:#020617;color:white}
 
-.container{max-width:1200px;margin:auto;padding:20px}
+h1{text-align:center;color:#facc15;margin:20px}
 
-.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+.container{max-width:1100px;margin:auto;padding:20px}
 
-.box{
-background:#0f172a;
-padding:15px;
-border-radius:10px;
-}
-
-input,select,button{
+input,button{
 width:100%;padding:10px;margin-top:10px;border:none;border-radius:8px
 }
 
 button{background:#facc15;font-weight:bold;cursor:pointer}
 
+.hidden{display:none}
+
+.card{
+background:#0f172a;
+padding:15px;
+border-radius:10px;
+margin-top:15px
+}
+
+/* PROGRAM */
 .program{
 display:grid;
 grid-template-columns:80px repeat(5,1fr);
-gap:5px;margin-top:20px
+gap:5px;
+margin-top:20px
 }
 
 .hucre{background:#0f172a;padding:10px;min-height:60px;border-radius:6px}
@@ -43,42 +47,47 @@ font-size:12px
 
 .baslik{color:#facc15;text-align:center}
 </style>
-
 </head>
+
 <body>
 
-<h1>🏫 PRO Ders Programı Sistemi</h1>
+<h1>🏫 Okul Sistemi</h1>
 
 <div class="container">
 
-<div class="grid">
+<!-- LOGIN -->
+<div id="loginBox" class="card">
+<h3>🔐 Giriş</h3>
+<input id="kullanici" placeholder="Kullanıcı adı">
+<input id="sifre" type="password" placeholder="Şifre">
+<button onclick="giris()">Giriş Yap</button>
+</div>
 
-<!-- ÖĞRETMEN -->
-<div class="box">
-<h3>👨‍🏫 Öğretmen</h3>
+<!-- ADMIN PANEL -->
+<div id="adminPanel" class="hidden">
+
+<div class="card">
+<h3>👨‍🏫 Öğretmen Ekle</h3>
 <input id="t_ad" placeholder="Ad">
 <input id="t_brans" placeholder="Branş">
 <button onclick="ogretmenEkle()">Ekle</button>
 </div>
 
-<!-- DERS -->
-<div class="box">
-<h3>📚 Ders (Sınıf)</h3>
+<div class="card">
+<h3>📚 Ders Planı</h3>
 <input id="sinif" placeholder="Sınıf (1-A)">
 <input id="d_ad" placeholder="Ders">
 <input id="d_saat" type="number" placeholder="Saat">
 <button onclick="dersEkle()">Ekle</button>
 </div>
 
-<!-- OTOMATİK -->
-<div class="box">
-<h3>🤖 Sistem</h3>
-<button onclick="olustur()">Program Oluştur</button>
-<button onclick="temizle()">Temizle</button>
+<div class="card">
+<button onclick="olustur()">🤖 Program Oluştur</button>
 </div>
 
 </div>
 
+<!-- PROGRAM (HERKES GÖRÜR) -->
 <div id="program"></div>
 
 </div>
@@ -92,7 +101,20 @@ let program=[];
 const gunler=["Pzt","Sal","Çar","Per","Cum"];
 const saatler=["09","10","11","12","13","14"];
 
-// ÖĞRETMEN EKLE
+// LOGIN
+function giris(){
+
+  if(kullanici.value==="admin" && sifre.value==="1234"){
+    loginBox.style.display="none";
+    adminPanel.classList.remove("hidden");
+    alert("Admin giriş başarılı");
+  }else{
+    alert("Hatalı giriş");
+  }
+
+}
+
+// ÖĞRETMEN
 function ogretmenEkle(){
   ogretmenler.push({
     ad:t_ad.value,
@@ -101,7 +123,7 @@ function ogretmenEkle(){
   alert("Eklendi");
 }
 
-// DERS EKLE
+// DERS
 function dersEkle(){
   dersler.push({
     sinif:sinif.value,
@@ -111,7 +133,7 @@ function dersEkle(){
   alert("Eklendi");
 }
 
-// OTOMATİK OLUŞTUR
+// PROGRAM
 function olustur(){
 
   program=[];
@@ -121,17 +143,14 @@ function olustur(){
     let ogretmen = ogretmenler.find(o=>o.brans===d.ders);
     if(!ogretmen) continue;
 
-    let kalan = d.saat;
+    let kalan=d.saat;
 
     for(let g of gunler){
       for(let s of saatler){
 
         if(kalan<=0) break;
 
-        // SLOT DOLU MU
         let dolu = program.find(p=>p.gun===g && p.saat===s && p.sinif===d.sinif);
-
-        // ÖĞRETMEN ÇAKIŞMA
         let cakisma = program.find(p=>p.gun===g && p.saat===s && p.ogretmen===ogretmen.ad);
 
         if(!dolu && !cakisma){
@@ -150,12 +169,6 @@ function olustur(){
     }
   }
 
-  ciz();
-}
-
-// TEMİZLE
-function temizle(){
-  program=[];
   ciz();
 }
 
