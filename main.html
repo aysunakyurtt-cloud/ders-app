@@ -10,73 +10,48 @@ body {
   color: white;
   font-family: Arial;
   text-align: center;
-  padding-top: 50px;
 }
 
-input {
-  padding: 10px;
-  width: 200px;
+.container {
+  margin-top: 50px;
+}
+
+.card {
+  background: #112b44;
+  margin: 10px auto;
+  padding: 15px;
+  width: 300px;
+  border-radius: 10px;
 }
 
 button {
   padding: 10px;
-  margin: 5px;
+  margin-top: 10px;
   border: none;
   border-radius: 5px;
+  background: gold;
   cursor: pointer;
-}
-
-.add { background: gold; }
-.logout { background: red; color: white; }
-
-ul {
-  list-style: none;
-  padding: 0;
-}
-
-li {
-  background: #112b44;
-  margin: 10px auto;
-  padding: 10px;
-  width: 300px;
-  border-radius: 5px;
 }
 </style>
 </head>
 
 <body>
 
-<h2>📚 Derslerim</h2>
-<p id="userEmail"></p>
+<div class="container">
+  <h1>📚 Ders Programım</h1>
 
-<input id="lessonInput" placeholder="Ders adı gir">
-<button id="addBtn" class="add">Ekle</button>
+  <div id="list"></div>
 
-<ul id="lessonList"></ul>
-
-<button id="logoutBtn" class="logout">Çıkış Yap</button>
+  <button onclick="logout()">Çıkış Yap</button>
+</div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-import {
-  getAuth,
-  onAuthStateChanged,
-  signOut
-} from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
-
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  getDocs,
-  deleteDoc,
-  doc,
-  query,
-  where
-} from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
-
+// 🔥 senin config
 const firebaseConfig = {
   apiKey: "AIzaSyAg_jsDkigb3FfQNg4nvU3SVI3fPlzNh0c",
   authDomain: "ders-app-yeni.firebaseapp.com",
@@ -90,65 +65,38 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const list = document.getElementById("lessonList");
-const input = document.getElementById("lessonInput");
-
-let currentUser = null;
-
-onAuthStateChanged(auth, async (user) => {
+// 🔐 giriş kontrol
+onAuthStateChanged(auth, (user) => {
   if (!user) {
-    window.location.href = "login.html";
-    return;
+    window.location.href = "index.html";
+  } else {
+    loadLessons();
   }
-
-  currentUser = user;
-  document.getElementById("userEmail").innerText = user.email;
-
-  loadLessons();
 });
 
+// 📥 dersleri çek
 async function loadLessons() {
+  const list = document.getElementById("list");
   list.innerHTML = "";
 
-  const q = query(
-    collection(db, "lessons"),
-    where("userId", "==", currentUser.uid)
-  );
+  const querySnapshot = await getDocs(collection(db, "dersler"));
 
-  const querySnapshot = await getDocs(q);
+  querySnapshot.forEach((doc) => {
+    const d = doc.data();
 
-  querySnapshot.forEach((docItem) => {
-    const li = document.createElement("li");
-
-    li.innerHTML = `
-      ${docItem.data().name}
-      <button onclick="deleteLesson('${docItem.id}')">❌</button>
+    list.innerHTML += `
+      <div class="card">
+        <h3>${d.ad}</h3>
+        <p>📅 ${d.gun}</p>
+        <p>⏰ ${d.saat}</p>
+      </div>
     `;
-
-    list.appendChild(li);
   });
 }
 
-document.getElementById("addBtn").onclick = async () => {
-  if (input.value.trim() === "") return;
-
-  await addDoc(collection(db, "lessons"), {
-    name: input.value,
-    userId: currentUser.uid
-  });
-
-  input.value = "";
-  loadLessons();
-};
-
-window.deleteLesson = async (id) => {
-  await deleteDoc(doc(db, "lessons", id));
-  loadLessons();
-};
-
-document.getElementById("logoutBtn").onclick = async () => {
-  await signOut(auth);
-  window.location.href = "login.html";
+// 🚪 çıkış
+window.logout = () => {
+  signOut(auth);
 };
 
 </script>
