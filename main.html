@@ -1,38 +1,48 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<title>Giriş</title>
-<style>
-body {
-  background:#0b1d2a;
-  color:white;
-  font-family:Arial;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-}
-.box {
-  background:#122c3f;
-  padding:30px;
-  border-radius:10px;
-  width:300px;
-  text-align:center;
-}
-input {
-  width:100%;
-  padding:10px;
-  margin:10px 0;
-}
-button {
-  padding:10px;
-  width:100%;
-  background:gold;
-  border:none;
-  cursor:pointer;
-}
-</style>
+  <meta charset="UTF-8">
+  <title>Giriş</title>
+
+  <style>
+    body {
+      background: #0b1c2c;
+      color: white;
+      font-family: Arial;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .box {
+      background: #112b44;
+      padding: 30px;
+      border-radius: 10px;
+      width: 300px;
+      text-align: center;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .login { background: gold; }
+    .register { background: gray; color: white; }
+  </style>
 </head>
 
 <body>
@@ -43,41 +53,58 @@ button {
   <input type="email" id="email" placeholder="Email">
   <input type="password" id="password" placeholder="Şifre">
 
-  <button id="loginBtn">Giriş Yap</button>
-  <button id="registerBtn">Kayıt Ol</button>
+  <button id="loginBtn" class="login">Giriş Yap</button>
+  <button id="registerBtn" class="register">Kayıt Ol</button>
 </div>
 
 <script type="module">
-import { auth } from "./firebase.js";
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import {
+  getAuth,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
-// elementler
-const email = document.getElementById("email");
-const password = document.getElementById("password");
-
-// 🔐 GİRİŞ
-document.getElementById("loginBtn").onclick = async () => {
-  try {
-    await signInWithEmailAndPassword(auth, email.value, password.value);
-    alert("Giriş başarılı");
-    window.location.href = "main.html"; // 🔥 yönlendirme
-  } catch (e) {
-    alert(e.message);
-  }
+// 🔥 SENİN YENİ CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyAg_jsDkigb3FfQNg4nvU3SVI3fPlzNh0c",
+  authDomain: "ders-app-yeni.firebaseapp.com",
+  projectId: "ders-app-yeni",
+  storageBucket: "ders-app-yeni.firebasestorage.app",
+  messagingSenderId: "727261766408",
+  appId: "1:727261766408:web:e2ac1df436f63d607482bd"
 };
 
-// 📝 KAYIT
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+// KAYIT
 document.getElementById("registerBtn").onclick = async () => {
   try {
     await createUserWithEmailAndPassword(auth, email.value, password.value);
-    alert("Kayıt başarılı");
+    alert("✅ Kayıt başarılı!");
   } catch (e) {
-    alert(e.message);
+    alert("❌ " + e.message);
   }
 };
+
+// GİRİŞ
+document.getElementById("loginBtn").onclick = async () => {
+  try {
+    await signInWithEmailAndPassword(auth, email.value, password.value);
+    alert("🎉 Giriş başarılı!");
+
+    // YÖNLENDİR
+    setTimeout(() => {
+      window.location.href = "main.html";
+    }, 500);
+
+  } catch (e) {
+    alert("❌ " + e.message);
+  }
+};
+
 </script>
 
 </body>
