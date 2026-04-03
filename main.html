@@ -2,71 +2,40 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>Giriş</title>
+  <title>Ana Sayfa</title>
 
   <style>
     body {
       background: #0b1c2c;
       color: white;
       font-family: Arial;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    .box {
-      background: #112b44;
-      padding: 30px;
-      border-radius: 10px;
-      width: 300px;
       text-align: center;
-    }
-
-    input {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 5px;
-      border: none;
+      padding-top: 100px;
     }
 
     button {
-      width: 100%;
-      padding: 10px;
-      margin: 5px 0;
+      padding: 10px 20px;
+      background: gold;
       border: none;
       border-radius: 5px;
       cursor: pointer;
     }
-
-    .login { background: gold; }
-    .register { background: gray; color: white; }
   </style>
 </head>
 
 <body>
 
-<div class="box">
-  <h2>🔐 Giriş</h2>
+<h1>🎉 Hoşgeldin</h1>
+<p id="userEmail"></p>
 
-  <input type="email" id="email" placeholder="Email">
-  <input type="password" id="password" placeholder="Şifre">
-
-  <button id="loginBtn" class="login">Giriş Yap</button>
-  <button id="registerBtn" class="register">Kayıt Ol</button>
-</div>
+<button id="logoutBtn">Çıkış Yap</button>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import {
-  getAuth,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword
-} from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signOut } 
+from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
-// 🔥 SENİN YENİ CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyAg_jsDkigb3FfQNg4nvU3SVI3fPlzNh0c",
   authDomain: "ders-app-yeni.firebaseapp.com",
@@ -79,30 +48,19 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-// KAYIT
-document.getElementById("registerBtn").onclick = async () => {
-  try {
-    await createUserWithEmailAndPassword(auth, email.value, password.value);
-    alert("✅ Kayıt başarılı!");
-  } catch (e) {
-    alert("❌ " + e.message);
+// kullanıcı kontrol
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    document.getElementById("userEmail").innerText = user.email;
+  } else {
+    window.location.href = "index.html";
   }
-};
+});
 
-// GİRİŞ
-document.getElementById("loginBtn").onclick = async () => {
-  try {
-    await signInWithEmailAndPassword(auth, email.value, password.value);
-    alert("🎉 Giriş başarılı!");
-
-    // YÖNLENDİR
-    setTimeout(() => {
-      window.location.href = "main.html";
-    }, 500);
-
-  } catch (e) {
-    alert("❌ " + e.message);
-  }
+// çıkış
+document.getElementById("logoutBtn").onclick = () => {
+  signOut(auth);
+  window.location.href = "index.html";
 };
 
 </script>
