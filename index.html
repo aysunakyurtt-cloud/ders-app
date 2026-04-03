@@ -24,6 +24,27 @@ padding:15px;
 border-radius:10px;
 margin-top:15px
 }
+
+/* PROGRAM */
+.program{
+display:grid;
+grid-template-columns:80px repeat(5,1fr);
+gap:5px;
+margin-top:20px
+}
+
+.hucre{background:#0f172a;padding:10px;min-height:60px;border-radius:6px}
+
+.ders{
+background:#22c55e;
+color:black;
+padding:5px;
+border-radius:6px;
+margin-bottom:5px;
+font-size:12px
+}
+
+.baslik{color:#facc15;text-align:center}
 </style>
 </head>
 
@@ -35,24 +56,23 @@ margin-top:15px
 
 <!-- LOGIN -->
 <div id="loginBox" class="card">
-<h3>🔐 Giriş / Kayıt</h3>
+<h3>🔐 Giriş</h3>
 <input id="email" placeholder="Email">
 <input id="password" type="password" placeholder="Şifre">
 
-<button onclick="kayit()">Kayıt Ol</button>
 <button onclick="giris()">Giriş Yap</button>
 </div>
 
 <!-- ADMIN -->
 <div id="adminPanel" class="hidden card">
 <h3>👑 Admin Panel</h3>
-<button onclick="alert('Buraya yönetim eklenecek')">Yönetim</button>
+<button onclick="programOlustur()">🤖 Program Oluştur</button>
 </div>
 
 <!-- ÖĞRETMEN -->
 <div id="ogretmenPanel" class="hidden card">
-<h3>👨‍🏫 Öğretmen Paneli</h3>
-<button onclick="alert('Programın burada')">Programımı Gör</button>
+<h3>👨‍🏫 Programım</h3>
+<div id="program"></div>
 </div>
 
 </div>
@@ -60,53 +80,99 @@ margin-top:15px
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } 
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } 
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+import { getFirestore, collection, getDocs } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 const firebaseConfig = {
-  apiKey: "AIzaSyBCUrqU0_PrzConRKjlYNoZ7yU38ZPwxfk",
+  apiKey: "AIzaSy...",
   authDomain: "ders-programi-d79e0.firebaseapp.com",
   projectId: "ders-programi-d79e0",
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-// KAYIT
-window.kayit = async ()=>{
-  try{
-    await createUserWithEmailAndPassword(auth,email.value,password.value);
-    alert("Kayıt başarılı");
-  }catch(e){
-    alert(e.message);
-  }
-};
+const gunler=["Pzt","Sal","Çar","Per","Cum"];
+const saatler=["09","10","11","12","13","14"];
 
 // GİRİŞ
 window.giris = async ()=>{
-  try{
-    await signInWithEmailAndPassword(auth,email.value,password.value);
-    alert("Giriş başarılı");
-  }catch(e){
-    alert(e.message);
-  }
+  await signInWithEmailAndPassword(auth,email.value,password.value);
 };
 
-// OTURUM TAKİP
-onAuthStateChanged(auth,(user)=>{
-  if(user){
+// OTURUM
+onAuthStateChanged(auth, async (user)=>{
 
-    loginBox.style.display="none";
+  if(!user) return;
 
-    // ADMIN kontrol (email ile)
-    if(user.email==="admin@gmail.com"){
-      adminPanel.classList.remove("hidden");
-    }else{
-      ogretmenPanel.classList.remove("hidden");
-    }
+  loginBox.style.display="none";
 
+  if(user.email==="admin@gmail.com"){
+    adminPanel.classList.remove("hidden");
+  }else{
+    ogretmenPanel.classList.remove("hidden");
+    programiGetir(user.email);
   }
+
 });
+
+// ÖĞRETMEN PROGRAMI
+async function programiGetir(email){
+
+  let ad = email.split("@")[0]; // ali@gmail.com → ali
+
+  let programData=[];
+
+  const snap = await getDocs(collection(db,"program"));
+
+  snap.forEach(d=>{
+    let veri=d.data();
+
+    if(veri.ogretmen.toLowerCase().includes(ad.toLowerCase())){
+      programData.push(veri);
+    }
+  });
+
+  ciz(programData);
+}
+
+// ÇİZ
+function ciz(program){
+
+  let html=`<div class="program">`;
+
+  html+=`<div></div>`;
+  gunler.forEach(g=> html+=`<div class="baslik">${g}</div>`);
+
+  saatler.forEach(s=>{
+
+    html+=`<div class="baslik">${s}:00</div>`;
+
+    gunler.forEach(g=>{
+
+      let derslerim = program.filter(p=>p.gun===g && p.saat===s);
+
+      html+=`<div class="hucre">`;
+
+      derslerim.forEach(d=>{
+        html+=`<div class="ders">
+        ${d.ders}<br>
+        ${d.sinif}
+        </div>`;
+      });
+
+      html+=`</div>`;
+    });
+  });
+
+  html+=`</div>`;
+
+  document.getElementById("program").innerHTML=html;
+}
 
 </script>
 
